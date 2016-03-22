@@ -1,0 +1,106 @@
+---
+title: "oil spill area"
+author: "Ben Williams"
+date: "March 22, 2016"
+output: html_document
+---
+
+Data from <http://www.esrl.noaa.gov/psd/data/gridded/data.noaa.oisst.v2.html>
+
+Load packages
+
+```{r}
+library(RNetCDF)
+library(reshape2)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+```
+
+Load data
+
+```{r data, echo=T}
+sst.in <- open.nc("../data/sst.mnmean.nc")
+print.nc(sst.in)
+
+dat <- read.nc(sst.in)
+close.nc(sst.in)
+```
+
+Pull out the variables  
+```{r}
+lat <- dat$lat
+lon <- dat$lon-360
+time <- as.Date(dat$time, origin='1800-01-01')
+sst <- dat$sst
+out = expand.grid(latitude=lat,longitude=lon)
+
+for(ii in 1:length(time)) { 
+   out[,paste(time[ii])]  = as.vector(sst[,,ii]) 
+} #append the data to out
+```
+
+Melt the dataframe 
+```{r}
+outer <- melt(out, id=c('longitude','latitude'))
+outer<-na.omit(outer)
+```
+
+Filter the dataframe  
+This is a rough break that likely needs to be further refined
+
+```{r}
+
+outer %>% 
+   filter(longitude > -161.1 & longitude < -144.9 & latitude >54 & latitude <61) %>% 
+   filter(longitude < -154 & latitude > 54 | longitude < -153 & latitude > 55 |longitude < -152 & latitude > 56 |longitude < -151 & latitude > 57|longitude < -150 & latitude > 58| latitude > 59 ) %>% 
+   filter(longitude > -160 & latitude <56 | longitude > -159 & latitude <57 |longitude > -158 & latitude <58 | longitude > -157 & latitude <59 | longitude > -156 & latitude <60 | longitude > -155 & latitude <60 | longitude > -154 & latitude <61) -> SST
+
+
+names(SST) <- c('longitude','latitude','date','sst')
+
+SST$date <- ymd(SST$date)
+SST$year <- as.numeric(format(SST$date, "%Y"))
+SST$month <- as.numeric(format(SST$date, "%m"))
+```
+
+Calculate mean annual temp, mean winter temp and mean summer temp.
+
+Change these months if you need a different subset.
+```{r}
+SST %>% group_by(year) %>% filter(year < 2016) %>% summarize(sst=mean(sst)) -> aSST
+names(aSST) <- c('year', 'asst')
+
+SST %>% group_by(year) %>% filter(month > 10 | month < 4) %>% summarize(sst=mean(sst)) -> wSST
+names(wSST) <- c('year', 'wsst')
+
+SST %>% group_by(year) %>% filter(month > 3 & month < 11) %>% summarize(sst=mean(sst)) -> sSST
+names(sSST) <- c('year', 'ssst')
+
+aSST %>% left_join(wSST) %>% left_join(sSST) %>% data.frame()-> all.SST
+```
+
+Plot
+
+```{r}
+ggplot(all.SST, aes(year, asst)) + geom_line() + geom_line(aes(year, wsst), color=4) + geom_line(aes(year, ssst), color=2) + ylab('SST')
+```
+
+Where is the data from
+
+```{r}
+library(maps);library(mapdata);
+library(mapproj)
+
+ak <- map_data('worldHires','USA:Alaska')
+akmap<-ggplot()+geom_polygon(data=ak,aes(long,lat,group=group),fill=8,color='black')+
+   theme(panel.background=element_rect(fill='white'))+
+   xlab(expression(paste(Longitude^o,~'W')))+ylab(expression(paste(Latitude^o,~'W')))+
+   coord_map(xlim=c(-162,-144),ylim=c(53.5,61.5))
+
+akmap+geom_point(data=SST, aes(longitude, latitude))
+```
+
+```{r}
+write.csv(all.SST,file = "../data/all.sst.csv")
+```
