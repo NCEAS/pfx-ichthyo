@@ -13,33 +13,32 @@ One potential message emerging from all of this is that pollock is a strong driv
 Here are the Species Richness and Shannon Diversity trends plotted over time.
 
 ```{r, include=F}
-setwd('/users/kristinmarshall/dropbox/Ichthyo_IndexStandardization/')
 require(biwavelet)
 library(vegan)
 library(reshape)
 library(ggplot2)
 ```
 ```{r, echo=F}
-trends=read.csv("Abund.trends2.csv", header=T)
+trends=read.csv("data/Abund.trends2.csv", header=T)
 tr2=trends[,-1]
 names(tr2)=c('trend1','trend2')
 
-load=read.csv('Abund.loadings.csv',header=T)
+load=read.csv('data/Abund.loadings.csv',header=T)
 ld=load
 names(ld)=c('Species','Trend1','Trend2')
 
-spnames=read.csv("Abund.names.csv", header=T)
+spnames=read.csv("data/Abund.names.csv", header=T)
 
-climate=read.csv('ClimateCovars.csv',header=T)
-SST=read.csv('SSTcovar.csv',header=T)
-ssb=read.csv('ssbout.csv', header=T)
+climate=read.csv('data/ClimateCovars.csv',header=T)
+SST=read.csv('data/SSTcovar.csv',header=T)
+ssb=read.csv('data/ssbout.csv', header=T)
 
 ###Diversity metrics
-occAll=read.csv("occurrenceStatsForDFA.csv", header=T)[,-1]
+occAll=read.csv("data/occurrenceStatsForDFA.csv", header=T)[,-1]
 IchSR=apply(occAll,1,sum,na.rm=T)
 IchSR[c(4,6,32)]=NA
 
-SWabund=read.csv('DensityForDFA.csv', header=T)
+SWabund=read.csv('data/DensityForDFA.csv', header=T)
 IchSW=exp(diversity(SWabund, index="shannon"))
 IchSW[c(4,6,32)]=NA
 
@@ -61,7 +60,7 @@ prpoll[c(4,6,32)]=NA
 The last thing I want to look at here are the synchrony indices. These gives us a sense of how similar or different each species is behaving.  I print the code out here since these are custom functions.
 
 ```{r}
-x <- read.csv("DensityForDFA.csv", stringsAsFactors = FALSE)
+x <- read.csv("data/DensityForDFA.csv", stringsAsFactors = FALSE)
 
 ##remove 1984, 1986, and 2012 because no surveys in those years
 X <- x #[-c(4,6,32),]
@@ -136,6 +135,7 @@ ssb.cut=ssb[ssb$Year>1980 & ssb$Year<2014,]
 
 cor.mat=cbind(clim.cut[,-1],SST[1:33,2:3],ssb.cut[,c(2,3,5)],trend1=tr2[,1],trend2=tr2[,2],biod[,2:3])
 cor.mat.scale=apply(cor.mat,2,scale)
+saveRDS(cor.mat, file = "correlation-matrix.rds")
 ```
 
 ##Cross-correlations
