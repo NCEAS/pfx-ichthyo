@@ -1,0 +1,419 @@
+---
+title: "Potential Drivers of DFA Trends and Diversity, and a look at synchrony"
+author: "Kristin Marshall"
+date: "Aug 30, 2016"
+output: word_document
+---
+
+This document plots the DFA trends and loadings for the best-fit model, and explores potential climate and SSB drivers that could explain the trends.  Below, I calculate cross-correlations among climate covariates and DFA trends and the diversity time series and also use wavelets to look at these same relationships.  Lastly, we look at some metrics of synchrony and how they have changed through time.  
+
+One potential message emerging from all of this is that pollock is a strong driver of the icthyoplankton community dynamics, and particularly in the 1980s and 1990s.  After pollock declined in the mid-90s, stronger relationships between ichthyoplankton abundances and climate drivers have begun to emerge.  
+
+##Diversity trends
+Here are the Species Richness and Shannon Diversity trends plotted over time.
+
+```{r, include=F}
+setwd('/users/kristinmarshall/dropbox/Ichthyo_IndexStandardization/')
+require(biwavelet)
+library(vegan)
+library(reshape)
+library(ggplot2)
+```
+```{r, echo=F}
+trends=read.csv("Abund.trends2.csv", header=T)
+tr2=trends[,-1]
+names(tr2)=c('trend1','trend2')
+
+load=read.csv('Abund.loadings.csv',header=T)
+ld=load
+names(ld)=c('Species','Trend1','Trend2')
+
+spnames=read.csv("Abund.names.csv", header=T)
+
+climate=read.csv('ClimateCovars.csv',header=T)
+SST=read.csv('SSTcovar.csv',header=T)
+ssb=read.csv('ssbout.csv', header=T)
+
+###Diversity metrics
+occAll=read.csv("occurrenceStatsForDFA.csv", header=T)[,-1]
+IchSR=apply(occAll,1,sum,na.rm=T)
+IchSR[c(4,6,32)]=NA
+
+SWabund=read.csv('DensityForDFA.csv', header=T)
+IchSW=exp(diversity(SWabund, index="shannon"))
+IchSW[c(4,6,32)]=NA
+
+IchSimp=1/diversity(SWabund, index="simpson")
+IchSimp[c(4,6,32)]=NA
+biod=data.frame(year=seq(1981:2013), IchSR, IchSW, IchSimp)
+biod$IchSR[biod$year %in% c(1984,1986,2012)]=NA
+biod$IchSW[biod$year %in% c(1984,1986,2012)]=NA
+biod$IchSimp[biod$year %in% c(1984,1986,2012)]=NA
+#write.csv(biod,'IchthyoBiod.csv', row.names=F)
+```
+Calculate the proportion of total larval abundance made up by pollock in each year
+```{r}
+prpoll=SWabund[,1]/rowSums(SWabund)
+prpoll[c(4,6,32)]=NA
+```
+
+##Synchrony
+The last thing I want to look at here are the synchrony indices. These gives us a sense of how similar or different each species is behaving.  I print the code out here since these are custom functions.
+
+```{r}
+x <- read.csv("DensityForDFA.csv", stringsAsFactors = FALSE)
+
+##remove 1984, 1986, and 2012 because no surveys in those years
+X <- x #[-c(4,6,32),]
+X[c(4,6,32),]=NA
+
+wcv <- function(x) {
+  cvs <- apply(x, 2, function(y) sd(y, na.rm=T) / mean(y, na.rm=T))
+  sum(cvs * (colMeans(x, na.rm=T) / mean(rowSums(x, na.rm=T))))
+}
+
+#Loreau 2008 synchrony
+synchrony <- function (x) {
+  var(rowSums(x, na.rm=T)) / (sum(apply(x, 2, sd, na.rm=T)) ^ 2)
+}
+
+##Gross 2014 synchrony
+nsync<-function(x) {
+  (1/dim(x)[2])*sum(apply(x,2, function(y) cor(y,rowSums(x, na.rm=T)-y)), na.rm=T)
+}
+
+
+#X=x
+w <- 5
+sy <- sapply((w+1):nrow(X), function(i) sqrt(synchrony(X[(i - w):i, ])))
+wc <- sapply((w+1):nrow(X), function(i) wcv(X[(i - w):i, ]))
+wct <- sapply((w+1):nrow(X), function(i)
+    sd(rowSums(X[(i - w):i, ], na.rm=T), na.rm=T)/mean(rowSums(X[(i -w):i,], na.rm=T ), na.rm=T))
+
+syg <- sapply((w+1):nrow(X), function(i) nsync(X[(i - w):i, ]))
+
+yrs=seq(1981,2013) #[-c(4,6,32)]
+#pdf("syncNoPollock.pdf", width = 5, height = 9)
+par(mfrow=c(2,2), mai=c(0.7,0.7,0.2,0.1))
+plot(yrs[(1+w):length(yrs)],sy, type="o")
+plot(yrs[(1+w):length(yrs)],wc, type="o")
+plot(yrs[(1+w):length(yrs)],wct, type="o")
+plot(yrs[(1+w):length(yrs)],syg, type="o")
+#matplot(yrs[(1+w):length(yrs)], X[6:33,], type = "l", log="")
+#dev.off()
+```
+
+Next, let's look at the two synchrony metrics with each species jack-knifed out one at a time.  This lets us see how much each species is affecting the synchrony metric. Both plots show the dominant role of pollock, but it influences the first synchrony metric more strongly.  The first metric suggests synchrony is flat or declining, whereas the 2nd shows asynchrony in the early part of the time series, with increasing synchrony during the 90s, that has flattened out, or possibly declined more recently.  The second metric is supposed to be less influenced by uneven communities like this one, so it's probably more reliable.
+```{r, echo=F}
+
+sy2 <- sapply(1:ncol(X), function(j)
+  sapply((w+1):nrow(X), function(i) sqrt(synchrony(X[(i - w):i, -j]))))
+matplot(yrs[(1+w):length(yrs)], sy2, type="l", col = "black")
+
+syg2 <- sapply(1:ncol(X), function(j)
+  sapply((w+1):nrow(X), function(i) nsync(X[(i - w):i, -j])))
+matplot(yrs[(1+w):length(yrs)], syg2, type="l", col = "black")
+
+```
+
+
+```{r}
+par(mfrow=c(4,1), mar=c(0,4,2,0), oma=c(1,1,1,1))
+plot(1981:2013, biod$IchSR, type='o', axes=F, ylab="Species Richness", ylim=c(1.8,11.5))
+box()
+axis(2, at=seq(0,12,by=2), labels=seq(0,12,by=2), cex.axis=0.8)
+par(mar=c(2,4,0,0))
+plot(1981:2013, biod$IchSW, type='o', axes=F, ylab="Shannon Diversity", ylim=c(1.8,11.5))
+box()
+axis(2, at=seq(0,12,by=2), labels=seq(0,12,by=2), cex.axis=0.8)
+
+
+
+axis(1, at=seq(1980,2013,by=5), labels=seq(1980,2013,by=5))
+
+clim.cut=climate[7:39,]
+ssb.cut=ssb[ssb$Year>1980 & ssb$Year<2014,]
+
+cor.mat=cbind(clim.cut[,-1],SST[1:33,2:3],ssb.cut[,c(2,3,5)],trend1=tr2[,1],trend2=tr2[,2],biod[,2:3])
+cor.mat.scale=apply(cor.mat,2,scale)
+```
+
+##Cross-correlations
+
+First, let's look at cross correlation scores between the four responses (DFA Trend 1, DFA Trend 2, Species Richness, Shannon Diversity) and all of the climate and ssb covariates.  Below, we create heatmaps of the cross correlation scores for lags of +/- 2.  Note that we are primarily interested in the zero and neg.1 rows because those make the most sense ecologically (conditions in the year before or the year of the survey are correlated with the observed data). The "significance" cut-off on these is around +/-0.35 (KM needs to re-calculate to be precise).
+```{r, echo=F}
+lags=2
+names.plot=names(cor.mat)
+names.plot[6]= 'AnnSST'
+names.plot[7]= 'WinSST'
+names.plot[8]= 'PcodSSB'
+names.plot[9]= 'ArrowSSB'
+names.plot[10]= 'PollSSB'
+names.plot[11]= 'Trend 1'
+names.plot[12]= 'Trend 2'
+names.plot[13]= 'Species Richness'
+names.plot[14]= 'Shannon Diversity'
+keep.out=data.frame(cov.name=NA,neg.1=NA,zero=NA,response=NA)
+
+for (j in 1:4) { #loops over the responses
+  t1ccf=data.frame(cov.name=NA,neg.2=NA,neg.1=NA,zero=NA,pos.1=NA,pos.2=NA)
+
+  for(i in 1:10){
+  
+    this.ccf=ccf(cor.mat.scale[,i],cor.mat.scale[,(j +10)], lag.max=lags, plot=F, na.action=na.pass)
+  
+    t1ccf[i,]=cbind(names.plot[i],t(this.ccf$acf[,1,1]))
+  }
+
+t1ccf$neg.2=as.numeric(t1ccf$neg.2)
+t1ccf$neg.1=as.numeric(t1ccf$neg.1)
+t1ccf$zero=as.numeric(t1ccf$zero)
+t1ccf$pos.1=as.numeric(t1ccf$pos.1)
+t1ccf$pos.2=as.numeric(t1ccf$pos.2)
+
+keep.ccf=t1ccf[,c(1,3,4)]
+keep.ccf$response=j
+keep.out=rbind(keep.out,keep.ccf)
+write.csv(keep.out, "ccfoutput.csv")
+  
+melted_cormat <- melt.data.frame(t1ccf, id.var='cov.name')
+melted_cormat$value=as.numeric(melted_cormat$value)
+melted_cormat$value=round(melted_cormat$value,2)
+
+ggheatmap <- ggplot(melted_cormat, aes(cov.name, variable, fill = value))+
+ geom_tile(color = "white")+
+ scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+   midpoint = 0, limit = c(-1,1), space = "Lab", 
+    name="Cross\nCorrelation") +
+  theme_minimal()+ # minimal theme
+ theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1))+
+ coord_fixed()
+
+print(ggheatmap + 
+geom_text(aes(cov.name, variable, label = value), color = "black", size = 3) +
+theme(
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.border = element_blank(),
+  panel.background = element_blank(),
+  axis.ticks = element_blank()) +
+  labs(title=names.plot[10+j]))
+  
+}
+
+```
+A quick summary of the results of the cross-correlation scores, focusing on the zero and lag -1 effects:
+
+Trend 1: Prior year NPGO is positively correlated, prior year NPI is negatively correlated.  Cod SSB in the same year, and pollock ssb in same year and prior year are negatively correlated. These signals are relatively weak overall. 
+
+Trend 2: NPGO is positively correlated with Trend 2 in 1-2 years prior (but don't make too much of this because the lag 2 value is higher than lag 1. Pcod SSB is negatively correlated with no lag (and +1-2 lag), pollock SSB is negatively correlated with lags -1 to +2.  As with Trend 1, these correlations are fairly weak. 
+
+This might be a productivity signal-- so groups loading strongly negative on trend 2 do better in more productive years.  Unfortunately the only sp that have positive loadings on trend 2 are ronquils and longsnout prickleback.  Most other sp. load positively on trend 2, which suggests they have higher abundances when NPGO is negative.
+
+NPGO is correlated with salinity, nutrients, and chla along the GAK line, which is driven by horizontal transport and upwelling (I think?).  It could be that the the physical transport piece is the link to ichthyoplantkon community signal, not the productivity signal??
+
+Species Richness: PDO (lag -1) and ENSO (lag 0) are negatively correlated, Pcod is negatively correlated, and arrowtooth positively correlated. Pcod correlation -0.52 is fairly substantial compared to other values we've seen so far.
+
+Shannon Diversity: PDO is positively correlated.
+
+##Wavelets
+
+Because the CCF analyses give us some hints about what's going on, but don't really nail down the story (at least not for me), I wanted to try out wavelets.  This analysis lets us break down the time-series into component pieces and ask how well they line up with the climate and SSB indices over time.  The key difference with the wavelet tool is that we can look at how relationships change over time-- so Trend 1 and NPGO may be correlated for a few years of the time series, but not the full 33 years, for example.  Wavelets give us a relatively easy way to visualize how the relationships set up and break down through time.
+
+###Trend 1
+```{r, echo=F, fig.width=7, fig.height=9}
+trends[,1]=seq(1981,2013)
+names(trends)=c("Year","Trend1","Trend2")
+#wt1=wt(trends[,1:2])
+yrs=seq(1981,2013)
+
+# pdf("Waveletout.pdf")
+# par(mfrow=c(2,2))
+# par(oma=c(0, 0, 0, 1), mar=c(5, 4, 3,1 ) + 0.1)
+# for(i in 1:length(names(cor.mat))){
+# 
+# wt1=wt(cbind(yrs,cor.mat[,i]))
+# plot(wt1, plot.cb=TRUE, plot.phase=FALSE, type="power.corr.norm", main=names(cor.mat)[i])
+# }
+# dev.off()
+
+dens=read.csv('DensityforDFA.csv', header=T)
+densc=dens
+densc[c(4,6,32),]=NA ##creates NA in years where there was no data. Did this because the interpolated values from the index standardization were weird.
+
+##fills in missing values with linear interpolation
+
+##this line is broken right now-- commenting out everything below until I fix it.
+ #densap=apply(densc,2,approx, list(y=NULL, xout=c(4,6,32)))
+# 
+# pdf("SpWavelet.pdf")
+# par(mfrow=c(3,2))
+# par(oma=c(0, 0, 0, 1), mar=c(5, 4, 3,1 ) + 0.1)
+# wtd=wt(cbind(yrsc,scale(densc[,1])))
+# plot(wtd, plot.cb=TRUE, plot.phase=TRUE, type="power.corr.norm", main=spnames$LongName[1])
+# w.arr <- array(dim = c(dim(densc)[2], NROW(wtd$wave), NCOL(wtd$wave)))
+# w.arr[1, , ] <- wtd$wave
+# for(i in 2:dim(densc)[2]){
+#   wtd=wt(cbind(yrsc,scale(densc[,i])))
+#   plot(wtd, plot.cb=TRUE, plot.phase=TRUE, type="power.corr.norm", main=spnames$LongName[i])
+#   w.arr[i, , ] <- wtd$wave
+# }
+# w.arr.dis <- wclust(w.arr)
+# plot(hclust(w.arr.dis$dist.mat, method = "ward.D"),
+# sub = "", main = "", ylab = "Dissimilarity", hang = -1, labels=spnames$ShortName)
+# dev.off()
+
+
+
+#pdf("CrossWaveletTr1.pdf")
+cor.mat.scale=as.data.frame(cor.mat.scale)
+ names(cor.mat.scale)=names(cor.mat)
+par(mfrow=c(2,2))
+#plot(wt1, type="power.corr.norm", main="Bias-corrected")
+#plot(wt1, type="power.norm", main="Not-corrected")
+par(oma=c(0, 0, 0, 1), mar=c(2, 3, 2,5))
+for(i in c(2,3,5,6)){ ##plot for paper needs NPGO, NPI, upwelling, SST, poll c(2,3,5,6,8,10)
+yrs=seq(1981,2013)
+#wtx=xwt(cbind(yrs,scale(cor.mat.scale[,i])), cbind(yrs,cor.mat.scale$trend1))
+#plot(wtx, plot.cb=TRUE, plot.phase=TRUE, type="power.corr.norm", main=names.plot[i])
+wtx=wtc(cbind(yrs,scale(cor.mat.scale[,i])), cbind(yrs,cor.mat.scale$trend1), nrands=1000)
+plot(wtx, plot.cb=TRUE, plot.phase=TRUE, type="power.corr.norm", main=names.plot[i])
+
+#phase.plot()
+}
+#dev.off()
+```
+
+Arrows pointing to the right mean that x and y are in phase.
+Arrows pointing to the left mean that x and y are in anti-phase.
+Arrows pointing up mean that x leads y by π/2.
+Arrows pointing down mean that y leads x by π/2.
+
+Trend 1  is out of phase with NPGO from 2002-2010 (but latter is outside the cone of influence). This means that groups that load positively on trend 1 do well when NPGO is positive during this period of time.
+
+Trend 1 is in phase with ENSO, with ENSO slightly leading, in the late 1990s.  So during this period, positive ENSO meant high abundance for groups loading strongly on Trend 1.
+
+###Trend 2
+```{r, echo=F, fig.width=7, fig.height=9}
+#pdf("CrossWaveletTr2.pdf")
+par(mfrow=c(3,2))
+#plot(wt1, type="power.corr.norm", main="Bias-corrected")
+#plot(wt1, type="power.norm", main="Not-corrected")
+par(oma=c(0, 0, 0, 1), mar=c(2, 3, 2,5))
+for(i in c(1,2,4,6,7,10)){ ##for paper, keep ENSO, NPGO,PDO,  AnnSST, Win SST, PollSSB c(1,2,4,6,7,10)
+yrs=seq(1981,2013)
+#wtx=xwt(cbind(yrs,scale(cor.mat.scale[,i])), cbind(yrs,cor.mat.scale$trend2))
+#plot(wtx,  plot.cb=F,plot.phase=TRUE,type="power.corr.norm", main=names.plot[i])
+wtx=wtc(cbind(yrs,scale(cor.mat.scale[,i])), cbind(yrs,cor.mat.scale$trend2), nrands=1000)
+plot(wtx, plot.cb=TRUE, plot.phase=TRUE, type="power.corr.norm", main=names.plot[i])
+
+
+#phase.plot()
+}
+#dev.off()
+```
+Trend 2 is in phase with asst, wsst, enso, and pdo in the 1990s, on a 4-6 year cycles, but relationship breaking down in early 2000s. Is this evidence of a regime shift???
+
+###Species Richness
+```{r, echo=F, fig.width=7, fig.height=9}
+#pdf("CrossWaveletSR.pdf")
+cor.mat.scale$IchSR[c(4,6,32)]=approx(cor.mat.scale$IchSR, y=NULL, xout=c(4,6,32))$y
+par(mfrow=c(5,2))
+#plot(wt1, type="power.corr.norm", main="Bias-corrected")
+#plot(wt1, type="power.norm", main="Not-corrected")
+par(oma=c(0, 0, 0, 1), mar=c(2, 3, 2,5))
+for(i in 1:10){
+yrs=seq(1981,2013)
+wtx=xwt(cbind(yrs,cor.mat[,i]), cbind(yrs,cor.mat.scale$IchSR))
+plot(wtx,  plot.cb=TRUE,plot.phase=TRUE,type="power.corr.norm", main=names.plot[i])
+wtx=wtc(cbind(yrs,scale(cor.mat.scale[,i])), cbind(yrs,cor.mat.scale$IchSR), nrands=1000)
+plot(wtx, plot.cb=TRUE, plot.phase=TRUE, type="power.corr.norm", main=names.plot[i])
+#phase.plot()
+}
+#dev.off()
+```
+Looking at the species richness plots, we see a lot of arrows pointing down, which doesn't make very much sense (SR leading the env. indicator). However, PDO was out of phase with SR in the late 1980s and early 1990s, and in phase with NPGO, both with a period of 3-4 yrs.
+
+###Shannon diversity
+```{r,echo=F, fig.width=7, fig.height=9}
+cor.mat.scale$IchSW[c(4,6,32)]=approx(cor.mat.scale$IchSW, y=NULL, xout=c(4,6,32))$y
+
+#pdf("CrossWaveletSW.pdf")
+par(mfrow=c(2,2))
+#plot(wt1, type="power.corr.norm", main="Bias-corrected")
+#plot(wt1, type="power.norm", main="Not-corrected")
+par(oma=c(0, 0, 0, 1), mar=c(2, 3, 2,5))
+for(i in c(1,3,4,7)){ #for paper keep winSST, ENSO, NPI, PDO c(1,3,4,7)
+yrs=seq(1981,2013)
+#wtx=xwt(cbind(yrs,cor.mat.scale[,i]), cbind(yrs,cor.mat.scale$IchSW))
+#plot(wtx,  plot.cb=TRUE,plot.phase=TRUE,type="power.corr.norm", main=names.plot[i])
+wtx=wtc(cbind(yrs,scale(cor.mat.scale[,i])), cbind(yrs,cor.mat.scale$IchSW), nrands=1000)
+plot(wtx, plot.cb=TRUE, plot.phase=TRUE, type="power.corr.norm", main=names.plot[i])
+
+#phase.plot()
+}
+#dev.off()
+```
+There is a suggestion of a relationship with PDO, Upwelling, and Winter SST in the 1990s, but not within the confidence limits.
+
+
+Let's try a heatmap plot, where each row is a different driver or response. PDO, ENSO, NPGO, Trend 1, and Trend 2 are kept in their original units, all others are standardized.
+
+```{r, echo=F}
+cor.plot.scale=cbind(year=1981:2013,cor.mat)
+cor.plot.scale$NPI=scale(cor.plot.scale$NPI)
+cor.plot.scale$Upwelling=scale(cor.plot.scale$Upwelling)
+cor.plot.scale$asst=-scale(cor.plot.scale$asst)
+cor.plot.scale$wsst=-scale(cor.plot.scale$wsst)
+cor.plot.scale$Pcod_F_SSB_t=scale(cor.plot.scale$Pcod_F_SSB_t)
+cor.plot.scale$Pollock_F_SSB_thousandt=scale(cor.plot.scale$Pollock_F_SSB_thousandt)
+cor.plot.scale$Arr_A_B=scale(cor.plot.scale$Arr_A_B)
+cor.plot.scale$IchSR=scale(cor.plot.scale$IchSR)
+cor.plot.scale$IchSW=scale(cor.plot.scale$IchSW)
+
+names(cor.plot.scale)[9]="Pacific cod"
+names(cor.plot.scale)[10]="Arrowtooth"
+names(cor.plot.scale)[11]="Pollock"
+
+TR1vars=c('ENSO','NPGO','NPI','Pacific cod','Pollock','trend1')
+TR2vars=c('ENSO','PDO','NPI','asst','wsst','Pacific cod','Pollock','Arrowtooth','trend2')
+SRvars=c('NPGO','ENSO','NPI','PDO','Pacific cod','Arrowtooth','IchSR')
+SWvars=c('PDO','asst','wsst','NPI','Pacific cod','Pollock','IchSW')
+
+melted_corplot <- melt.data.frame(cor.plot.scale, id.var='year')
+melted_corplot$value=as.numeric(melted_corplot$value)
+#melted_corplot$value=round(melted_corplot$value,2)
+
+
+level.var=levels(as.factor(as.character(melted_corplot$variable)))[c(2,14,7,13,3,6,9,10,8,1,4,5,11,12)]
+melted_corplot$variable=factor(as.character(melted_corplot$variable), levels=level.var)
+
+ggheatmap <- ggplot(melted_corplot[melted_corplot$variable %in% SRvars,], aes(year, variable, fill = value))+
+ geom_tile(color = "white")+
+ scale_fill_gradient2(low = "red", high = "green", mid = "white", 
+   midpoint = 0, limit = c(min(melted_corplot$value),max(melted_corplot$value)), space = "Lab", 
+    name="Normalized\nValue") +
+  theme_minimal()+ # minimal theme
+ theme(axis.text.x = element_text(angle = 45, vjust = 2, 
+    size = 12, hjust = 1))+
+ coord_fixed()
+
+print(ggheatmap)
+
+print(ggheatmap + 
+geom_text(aes(year, variable, label = value), color = "black", size = 3) +
+theme(
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.border = element_blank(),
+  panel.background = element_blank(),
+  axis.ticks = element_blank()))
+  
+
+
+
+
+```
