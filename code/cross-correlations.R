@@ -4,21 +4,7 @@ library(tidyverse)
 predictors <- select(d, ENSO:Pollock_F_SSB_thousandt)
 responses <- select(d, trend1:IchSW)
 
-cc <- function(x, y, k) {
-  plyr::ldply(seq(1, nrow(responses) - k + 1), function(i) {
-  r <- cor(predictors[i:(k + i),x], responses[i:(k+i),y], use = "complete.obs")
-  data.frame(x, y, r, i)
-})
-}
-
-ccnames <- expand.grid(x = names(predictors), y = names(responses), k = 10)
-out <- plyr::mdply(ccnames, cc)
-
-ggplot(out, aes(as.numeric(i), r, color = r)) + geom_line(size=2) +
-  facet_grid(x~y) +
-  scale_colour_gradient2()
-
-Autocorr.Pyper<-function(N,tsx,tsy) {
+autocorr_pyper<-function(N,tsx,tsy) {
   lag.max<-min(length(tsx),length(tsy))/4
   rxx<-acf(tsx,lag.max=lag.max,plot=F, na.action = na.pass)$acf[-1,1,1]
   ryy<-acf(tsy,lag.max=lag.max,plot=F, na.action = na.pass)$acf[-1,1,1]
@@ -26,21 +12,17 @@ Autocorr.Pyper<-function(N,tsx,tsy) {
   ifelse(Nstar<N,Nstar,N)
 }
 
-n.star <- Autocorr.Pyper(N = nrow(temp.dat), tsx = temp.dat$prey.val, tsy = temp.dat$pred.val)
-library(nlme)
-
 cc <- function(x, y, k, trans = I, pyper = FALSE, alpha = 0.9) {
   plyr::ldply(seq(1, nrow(responses) - k + 1), function(i) {
   xdata <-  trans(predictors[i:(k + i),x])
   ydata <-  trans(responses[i:(k + i),y])
   m <- cor.test(xdata, ydata, use = "complete.obs")
-  # m <- gls(ydata~xdata, correlation = corAR1())
   r <- m$estimate[[1]]
   if (!pyper) {
   l <- m$conf.int[[1]]
   u <- m$conf.int[[2]]
   } else {
-   n.star <- Autocorr.Pyper(N = length(xdata), tsx = xdata, tsy = ydata)
+   n.star <- autocorr_pyper(N = length(xdata), tsx = xdata, tsy = ydata)
    l <- psychometric::CIr(r=r, n = n.star, level = alpha)[1]
    u <- psychometric::CIr(r=r, n = n.star, level = alpha)[2]
   }
@@ -62,11 +44,11 @@ ggplot(out, aes(i, r)) +
   geom_hline(yintercept = 0, lty = 2, colour = "grey50") +
   geom_point(data = filter(out, sig != "none"), aes(color = sig)) +
   theme_light()
-}, k = slider(4, 20, 8))
+}, k = slider(4, 25, 8))
 
 
-d %>% mutate(year = seq_len(nrow(d))) %>% 
-  reshape2::melt(id = "year") %>% 
-    ggplot(aes(year, value)) + 
-      geom_line() +
-      facet_wrap(~variable, scales = "free_y")
+# d %>% mutate(year = seq_len(nrow(d))) %>% 
+#   reshape2::melt(id = "year") %>% 
+#     ggplot(aes(year, value)) + 
+#       geom_line() +
+#       facet_wrap(~variable, scales = "free_y")
