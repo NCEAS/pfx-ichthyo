@@ -4,6 +4,9 @@ library(tidyverse)
 predictors <- select(d, ENSO:Pollock_F_SSB_thousandt)
 responses <- select(d, trend1:IchSW)
 
+names(predictors)=c('ENSO','NPGO','NPI','PDO','Upwell','ASST','WSST','Pcod','Poll','Arrow')
+names(responses)=c('Trend 1','Trend 2', 'Sp Rich','Shannon')
+
 autocorr_pyper<-function(N,tsx,tsy) {
   lag.max<-min(length(tsx),length(tsy))/4
   rxx<-acf(tsx,lag.max=lag.max,plot=F, na.action = na.pass)$acf[-1,1,1]
