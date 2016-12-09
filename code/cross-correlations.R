@@ -4,7 +4,7 @@ library(tidyverse)
 predictors <- select(d, ENSO:Pollock_F_SSB_thousandt)
 responses <- select(d, trend1:IchSW)
 
-names(predictors)=c('ENSO','NPGO','NPI','PDO','Upwell','ASST','WSST','Pcod','Poll','Arrow')
+names(predictors)=c('ENSO','NPGO','NPI','PDO','Upwell','ASST','WSST','PCOD','ARROW','POLL')
 names(responses)=c('Trend 1','Trend 2', 'Sp Rich','Shannon')
 
 autocorr_pyper<-function(N,tsx,tsy) {
@@ -50,12 +50,12 @@ cc <- function(x, y, k, trans = I, pyper = FALSE, alpha = 0.9, method = "pearson
 
 library(manipulate)
 manipulate({
-  ccnames <- expand.grid(x = names(predictors), y = names(responses), k = k)
-  out <- plyr::mdply(ccnames, cc, trans = I, pyper = pyper, method = method)
+  ccnames <- expand.grid(x = names(predictors), y = names(responses), k = 11)
+  out <- plyr::mdply(ccnames, cc, trans = I, pyper = TRUE, method = "pearson")
   
   out <- out %>% mutate(sig = ifelse(u < 0, "low", ifelse(l > 0, "high", "none")))
   
-  ggplot(out, aes(i+1980, r)) + 
+  ggplot(out, aes(i+k+1980, r)) + 
     geom_line() +
     geom_ribbon(aes(ymin = l, ymax = u), alpha = 0.2) +
     facet_grid(x~y) +
