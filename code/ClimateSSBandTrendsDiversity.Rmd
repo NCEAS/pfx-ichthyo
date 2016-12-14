@@ -29,9 +29,7 @@ names(ld)=c('Species','Trend1','Trend2')
 
 spnames=read.csv("data/Abund.names.csv", header=T)
 
-climate=read.csv('data/ClimateCovars.csv',header=T)
-SST=read.csv('data/SSTcovar.csv',header=T)
-ssb=read.csv('data/ssbout.csv', header=T)
+
 
 ###Diversity metrics
 occAll=read.csv("data/occurrenceStatsForDFA.csv", header=T)[,-1]
@@ -78,12 +76,12 @@ synchrony <- function (x) {
 
 ##Gross 2014 synchrony
 nsync<-function(x) {
-  (1/dim(x)[2])*sum(apply(x,2, function(y) cor(y,rowSums(x, na.rm=T)-y)), na.rm=T)
+  (1/dim(x)[2])*sum(apply(x,2, function(y) cor(y,rowSums(x, na.rm=T)-y, use="complete.obs")), na.rm=T)
 }
 
 
 #X=x
-w <- 5
+w <- 11
 sy <- sapply((w+1):nrow(X), function(i) sqrt(synchrony(X[(i - w):i, ])))
 wc <- sapply((w+1):nrow(X), function(i) wcv(X[(i - w):i, ]))
 wct <- sapply((w+1):nrow(X), function(i)
@@ -117,23 +115,46 @@ matplot(yrs[(1+w):length(yrs)], syg2, type="l", col = "black")
 
 
 ```{r}
-par(mfrow=c(4,1), mar=c(0,4,2,0), oma=c(1,1,1,1))
-plot(1981:2013, biod$IchSR, type='o', axes=F, ylab="Species Richness", ylim=c(1.8,11.5))
+par(mfrow=c(3,1), mar=c(0,4,1,4), oma=c(1,1,1,1))
+plot(1981:2013, biod$IchSR, type='n', axes=F, ylab="Species Richness", ylim=c(3.5,11.5))
+abline(v=c(seq(1980,2010,by=5)), col='grey90')
+lines(1981:2013, biod$IchSR, type='o')
 box()
 axis(2, at=seq(0,12,by=2), labels=seq(0,12,by=2), cex.axis=0.8)
-par(mar=c(2,4,0,0))
-plot(1981:2013, biod$IchSW, type='o', axes=F, ylab="Shannon Diversity", ylim=c(1.8,11.5))
+
+
+par(mar=c(0,4,0,4))
+barplot(prpoll, space=0.5, axes=F, ylim=c(0,1), col='grey90')
+axis(4, at=seq(0,1,by=.2), labels=seq(0,1,by=.2), cex.axis=0.8)
+mtext('Prop. Pollock', side=4, line=3, cex=0.8)
+par(new=T)
+plot(1981:2013, biod$IchSW, type='n', axes=F, ylab="Shannon Diversity", ylim=c(1.8,11.5))
+abline(v=c(seq(1980,2010,by=5)), col='grey90')
+lines(1981:2013, biod$IchSW, type='o')
 box()
 axis(2, at=seq(0,12,by=2), labels=seq(0,12,by=2), cex.axis=0.8)
+#axis(1, at=seq(1980,2013,by=5), labels=seq(1980,2013,by=5))
 
-
-
+##
+par(mar=c(3,4,0,4))
+matplot(yrs[(1+w):length(yrs)], syg2, type="n", col = c('blue',rep('black',nrow(syg2)-1)), 
+    lwd=c(2,rep(1,nrow(syg2)-1)), xlim=c(1981,2013), axes=F, ylab="Synchrony", xlab="")
+abline(v=c(seq(1980,2010,by=5)), col='grey90')
+matlines(yrs[(1+w):length(yrs)], syg2, type="l", col = c('blue',rep('black',nrow(syg2)-1)), lwd=c(2,rep(1,nrow(syg2)-1)))
+lines(yrs[(1+w):length(yrs)],syg, lwd=2, col='grey80')
+axis(2, at=seq(-0.2,0.2,by=.1), labels=seq(-0.2,0.2,by=.1), cex.axis=1)
+abline(h=0)
+box()
 axis(1, at=seq(1980,2013,by=5), labels=seq(1980,2013,by=5))
 
-clim.cut=climate[7:39,]
-ssb.cut=ssb[ssb$Year>1980 & ssb$Year<2014,]
 
-cor.mat=cbind(clim.cut[,-1],SST[1:33,2:3],ssb.cut[,c(2,3,5)],trend1=tr2[,1],trend2=tr2[,2],biod[,2:3])
+
+
+climate=read.csv('data/ClimateCovarsSpr.csv',header=T)
+SST=read.csv('data/all.sst.csv',header=T)
+ssb=read.csv('data/ssbout.csv', header=T) ##ssb is offset one year-- so 1980-2012
+
+cor.mat=cbind(climate[,-2],sst=c(NA,SST[1:32,5]),ssb[,c(2:5)],trend1=tr2[,1],trend2=tr2[,2],biod[,2:3])
 cor.mat.scale=apply(cor.mat,2,scale)
 saveRDS(cor.mat, file = "correlation-matrix.rds")
 ```

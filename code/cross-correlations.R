@@ -1,10 +1,10 @@
 d <- readRDS("correlation-matrix.rds")
 
 library(tidyverse)
-predictors <- select(d, ENSO:Pollock_F_SSB_thousandt)
+predictors <- select(d, ENSO:V5)
 responses <- select(d, trend1:IchSW)
 
-names(predictors)=c('ENSO','NPGO','NPI','PDO','Upwell','ASST','WSST','PCOD','ARROW','POLL')
+names(predictors)=c('ENSO','NPGO','NPI','PDO','Upwell','SST','POLL','PCOD','POP','ARROW')
 names(responses)=c('Trend 1','Trend 2', 'Sp Rich','Shannon')
 
 autocorr_pyper<-function(N,tsx,tsy) {
@@ -15,7 +15,7 @@ autocorr_pyper<-function(N,tsx,tsy) {
   ifelse(Nstar<N,Nstar,N)
 }
 
-cc <- function(x, y, k, trans = I, pyper = FALSE, alpha = 0.9, method = "pearson", nboot = 200L) {
+cc <- function(x, y, k, trans = I, pyper = pyper, alpha = 0.9, method = method, nboot = 200L) {
   plyr::ldply(seq(1, nrow(responses) - k + 1), function(i) {
     xdata <-  trans(predictors[i:(k + i),x])
     ydata <-  trans(responses[i:(k + i),y])
@@ -50,8 +50,8 @@ cc <- function(x, y, k, trans = I, pyper = FALSE, alpha = 0.9, method = "pearson
 
 library(manipulate)
 manipulate({
-  ccnames <- expand.grid(x = names(predictors), y = names(responses), k = 11)
-  out <- plyr::mdply(ccnames, cc, trans = I, pyper = TRUE, method = "pearson")
+  ccnames <- expand.grid(x = names(predictors), y = names(responses), k = k)
+  out <- plyr::mdply(ccnames, cc, trans = I, pyper = pyper, method = method)
   
   out <- out %>% mutate(sig = ifelse(u < 0, "low", ifelse(l > 0, "high", "none")))
   
@@ -61,13 +61,15 @@ manipulate({
     facet_grid(x~y) +
     geom_hline(yintercept = 0, lty = 2, colour = "grey50") +
     geom_point(data = filter(out, sig != "none"), aes(color = sig)) +
-    theme_light() + guides(colour = FALSE) +
-    theme(panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank())
-}, k = slider(4, 25, 12), method = picker("pearson", "spearman", "kendall"), pyper = picker(TRUE, FALSE))
+    theme_light() + guides(colour = FALSE) #+
+    #theme(panel.grid.major = element_blank(),
+     # panel.grid.minor = element_blank())
+}, k = slider(4, 33, 11), method = picker("pearson", "spearman", "kendall"), pyper = picker(TRUE, FALSE))
 
-d %>% mutate(year = seq_len(nrow(d))) %>%
+
+predictors %>% 
+  mutate(year = seq_len(nrow(predictors))+1980) %>%
   reshape2::melt(id = "year") %>%
     ggplot(aes(year, value)) +
       geom_line() +
-      facet_wrap(~variable, scales = "free_y")
+      facet_wrap(~variable, ncol=3, scales = "free_y")

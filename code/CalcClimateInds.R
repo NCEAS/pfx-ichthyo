@@ -111,3 +111,41 @@ ccspr=data.frame(cbind(Year=seq(1981,2013), ENSO=ENSO_spring$ENSO_anul_mn, NPGO=
                  NPI=NPI$SeaLevelPressure_Spring_hPa, PDO=pdo_spr$PDO_spring, Upwelling=up.spr))
 
 write.csv(ccspr,'data/ClimateCovarsSpr.csv')
+
+
+##### Now get SSB vals
+
+poll=read.csv('data/GOAPollock2016SAFETable1.22.csv', header=T)
+
+poll.ssb<-poll %>%
+          filter(Year %in% c(1980:2012)) %>%
+          select(Year,Female.Spawn.thousand.ton) %>%
+          rename(poll.ssb=Female.Spawn.thousand.ton)
+
+
+pcod=read.csv('data/GOAPcod2016SAFETable2.17.csv', header=T, stringsAsFactors = T)
+
+pcod.ssb<-pcod %>%
+  filter(Year %in% c(1980:2012)) %>%
+  select(Year,Spawning.bio) %>%
+  rename(ssb=Spawning.bio) 
+#%>%
+#  mutate(ssb=as.numeric(ssb))
+
+pop=read.csv('data/GOAPOP2016SAFETable9.14.csv', header=T)
+
+pop.ssb<-pop %>%
+  filter(Year %in% c(1980:2012)) %>%
+  select(Year,Spawning.bio.tons) %>%
+  rename(pop.ssb=Spawning.bio.tons)
+
+arr=read.csv('data/GOAArrow2016SAFETable1new.csv')
+
+arr.ssb<-arr %>%
+  filter(X %in% c(1980:2012)) %>%
+  select(X,FSB) %>%
+  rename(arr.ssb=FSB)
+
+ssb.all=cbind(poll.ssb$Year,poll.ssb$poll.ssb*1000,as.numeric(pcod.ssb$ssb),as.numeric(pop.ssb$pop.ssb),as.numeric(arr.ssb$arr.ssb))
+
+write.csv(ssb.all,'data/ssbout.csv', row.names=F)
