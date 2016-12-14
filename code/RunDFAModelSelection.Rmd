@@ -1,0 +1,507 @@
+---
+title: "Fit DFA to Ichthyo Abundance"
+author: "Kristin Marshall"
+date: "August 23, 2016"
+output: word_document
+---
+This document contains the code and plots for fitting a DFA to the ichthyo. abundance data. The sections below step througg the model fitting and model selection procedure, show how I fit various covariates, and plots DFA fits and common trends. I also included a cluster analysis that groups species based on their loadings values, and a plot that summarizes those results.  I call out in the text 3 potential figures to include in the final manuscript. I'm imagining Figure 1 will be a map of the survey area, and Figures 2-4 are labeled below.
+```{r, include=FALSE}
+library(MARSS)
+library(xtable)
+
+#setwd('/users/kristinmarshall/dropbox/Ichthyo_IndexStandardization/')
+
+abund=read.csv('data/DensityForDFA.csv', header=T)
+
+spnames=rev(names(abund))
+names(abund)=spnames
+
+##replace years without data with NAs-- 1984, 1986, 2012.  survey starts in 1981 so years 4,6,32 are the ones missing 
+abund[4,]=NA
+abund[6,]=NA
+abund[32,]=NA
+
+abund.cut=abund
+
+aborder= order(colSums(abund.cut, na.rm=T), decreasing=T)
+abund.order=abund.cut[,aborder]
+
+# transpose data so time goes across columns
+dat.abund = t((abund.order))
+#dat.abund=dat.abund[-1,] #removes teh year row
+# get number of time series
+N.ts = dim(dat.abund)[1]
+# get length of time series
+TT = dim(dat.abund)[2] 
+#years for plotting
+years.plot=seq(1981,2013)
+
+Sigma = sqrt(apply(dat.abund, 1, var, na.rm=TRUE))
+y.bar = apply(dat.abund, 1, mean, na.rm=TRUE)
+dat.z = (dat.abund - y.bar) * (1/Sigma)
+rownames(dat.z) = rownames(dat.abund)
+
+spp = rownames(dat.abund)
+
+#pdf("RawAbund.pdf")
+par(mfrow=c(4,5), mar=c(0,0,0,0), oma=c(4,4,1,1))
+par(mgp = c(.6, .6, 0))
+par(tcl=.2)
+for(i in 1:length(spp)){
+  plot(years.plot,dat.z[i,],xlab="",ylab="Index", bty="L", pch=16, col="blue", type="b", ylim=c(min(dat.z, na.rm=T),max(dat.z, na.rm=T)), axes=F)
+  
+  if(i %in% c(16:20,36:40)) axis(1,at=seq(1990,2010, by=10), cex.axis=0.8)
+  if(i %in% c(1,6,11,16, 21, 26, 31,36)) axis(2, at=seq(-2,5, by=1), cex.axis=0.8)
+  box()
+  mtext(spp[i], side=3, line=-1, cex=0.5)
+}
+
+
+mtext("Year", side=1, outer=TRUE, line=2, cex=0.7)
+mtext("Standardized abundance", side=2, outer=TRUE, line=2, cex=0.7)
+
+#dev.off()
+```
+
+## Fit the DFA models
+Next, we fit all of the potential DFA models without covariates.  This included 1 to 4 common trends, and 3 different variance structures (diagonal and equal, diagonal and unequal, and equalvarcov).  A previous iteraion suggested the uncontrained variance structure wouldn't converge.  Given we're working with 40 time series, that's not surprising because it would require estimating 1600 parameters, and we only have 1200 data points.
+
+```{r, eval=FALSE}
+
+cntl.list = list(minit=200, maxit=3000, allow.degen=FALSE)
+# set up forms of R matrices
+levels.R = c("diagonal and equal",
+             "diagonal and unequal",
+             "equalvarcov")
+
+model.data=data.frame()
+for (j in 2:3){
+  for (i in 1:3){
+    
+    model.list = list(m=i, R=levels.R[j])
+    kemz = MARSS(dat.abund, model=model.list, control=cntl.list,
+                 z.score=TRUE, form="dfa")
+    
+    model.data = rbind(model.data, 
+                       data.frame(R=levels.R[j],
+                                  m=i,
+                                  logLik=kemz$logLik,
+                                  K=kemz$num.params,
+                                  AICc=kemz$AICc,
+                                  converg=kemz$convergence,
+                                  stringsAsFactors=FALSE))
+    
+    assign(paste("kemz", i, levels.R[j], sep="."), kemz)
+    
+    
+  }
+}
+
+###################################################
+### makemodeltable
+###################################################
+# calculate delta-AICc
+model.data$delta.AICc = model.data$AICc - min(model.data$AICc)
+# calculate Akaike weights
+wt = exp(-0.5*model.data$delta.AICc)
+model.data$Ak.wt = wt/sum(wt)
+# sort results
+model.tbl = model.data[order(model.data$AICc),-4]
+# drop AICc from table
+# calculate cumulative wts
+model.tbl$Ak.wt.cum = cumsum(model.tbl$Ak.wt)
+
+print(model.tbl)
+
+write.csv(model.tbl,'data/AbundDFA_AIC.csv')
+```
+We output the model table here to show that the best-fit model is a two trend model with a covariance matrix with a single parameter on the diagonal, and a second parameter on the diagonal (equalvarcov). 
+```{r, echo=FALSE}
+model.tbl=read.csv('data/AbundDFA_AIC.csv', header=T)
+print(model.tbl)
+```
+##Fit DFA models with covariates
+The next step is to see if we can improve the model fit by adding explanatory covariates.  We looked at three types of covariates: environmental indices, and index for the EVOS spill year, spawning stock biomasses of pollock, pcod, and arrowtooth. The take-home was that none of these covariates improved the AICc over the two trend model.  We output the code below.
+
+**QUESTION: SHOULD WE LOOK AT OTHER SPECIES SSB AS WELL?? I also tried halibut, but the time series was too short.  My sense is that this is sufficient because nothing we looked at was supported, mostly due to the model complexity I think.**
+
+###Environmental covariates
+First, let's look at the environmental covariates.  We looked for relationships with SST, ENSO, NPGO, PDO, NPI, and Upwelling.
+```{r, eval=FALSE}
+temp=read.csv('data/SSTcovar.csv', header=T)
+climate=read.csv('data/ClimateCovars.csv',header=T)
+asst=temp$asst[1:33]
+wsst=temp$wsst[1:33]
+enso=climate$ENSO[7:39]
+npgo=climate$NPGO[7:39]
+npi=climate$NPI[7:39]
+pdo=climate$PDO[7:39]
+up=climate$Upwelling[7:39]
+
+model.list = list(m=2, R="equalvarcov")
+cntl.list=list(minit=200, maxit=5000, allow.degen=FALSE)
+kemz.no= MARSS(dat.abund, model=model.list, control=cntl.list,
+               z.score=TRUE, form="dfa")
+kemz.2.asst = MARSS(dat.abund, model=model.list, control=cntl.list,
+               z.score=TRUE, form="dfa", covariates=asst)
+kemz.2.wsst=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=wsst)
+kemz.2.enso=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=enso)
+kemz.2.npgo=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=npgo)
+kemz.2.npi=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=npi)
+kemz.2.pdo=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=pdo)
+kemz.2.up=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=up)
+
+env.out=cbind(model=c("no covars", "AnnTemp", "WinTemp","ENSO","NPGO","NPI","PDO","Upwelling"),
+            AICc=round(c(kemz.no$AICc, kemz.2.asst$AICc, kemz.2.wsst$AICc, kemz.2.enso$AICc, 
+                         kemz.2.npgo$AICc, kemz.2.npi$AICc, kemz.2.pdo$AICc,kemz.2.up$AICc)))
+print(env.out, quote=F)
+
+# model     AICc
+#[1,] no covars 3261
+#[2,] AnnTemp   3354
+#[3,] WinTemp   3355
+#[4,] ENSO      3313
+#[5,] NPGO      3305
+#[6,] NPI       3354
+#[7,] PDO       3301
+#[8,] Upwelling 3312
+
+```
+From this table, we conclude that none of the climate cocariates improved the model fit over a 2 trend model. 
+
+Similarly, we might want to know if adding these covariates to a one trend model improves the fit.
+```{r, eval=FALSE}
+model.list = list(m=1, R="equalvarcov")
+cntl.list=list(minit=200, maxit=5000, allow.degen=FALSE)
+kemz.1.no= MARSS(dat.abund, model=model.list, control=cntl.list,
+               z.score=TRUE, form="dfa")
+kemz.1.asst = MARSS(dat.abund, model=model.list, control=cntl.list,
+               z.score=TRUE, form="dfa", covariates=asst)
+kemz.1.wsst=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=wsst)
+kemz.1.enso=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=enso)
+kemz.1.npgo=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=npgo)
+kemz.1.npi=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=npi)
+kemz.1.pdo=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=pdo)
+kemz.1.up=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=up)
+
+env.1.out=cbind(model=c("no covars", "AnnTemp", "WinTemp","ENSO","NPGO","NPI","PDO","Upwelling"),
+            AICc=round(c(kemz.1.no$AICc, kemz.1.asst$AICc, kemz.1.wsst$AICc, kemz.1.enso$AICc, 
+                         kemz.1.npgo$AICc, kemz.1.npi$AICc, kemz.1.pdo$AICc,kemz.1.up$AICc)))
+
+print(env.1.out, quote=FALSE)
+
+#model     AICc
+#no covars 3280
+#[2,] AnnTemp   3369
+# [3,] WinTemp   3369
+# [4,] ENSO      3328
+# [5,] NPGO      3321
+# [6,] NPI       3369
+# [7,] PDO       3321
+# [8,] Upwelling 3328
+```
+We conclude that including environmental covariates do not improve the one trend model, either. 
+
+###Fit SSB covariates
+Next, we try it for pollock, pcod, and arrowthooth, for both the 1 trend and 2 trend models.
+```{r, eval=FALSE}
+SSB=read.csv('data/ssbout.csv', header=T)
+#ind=which(SSB$Year >1980 & SSB$Year<2014)
+poll=SSB$V2/10^5
+pcod=SSB$V3[ind]/10^5
+arrtooth=SSB$V5[ind]/10^6
+
+model.list = list(m=2, R="equalvarcov")
+cntl.list=list(minit=200, maxit=5000, allow.degen=FALSE)
+kemz.2.no= MARSS(dat.abund, model=model.list, control=cntl.list,
+               z.score=TRUE, form="dfa")
+kemz.2.poll = MARSS(dat.abund, model=model.list, control=cntl.list,
+               z.score=TRUE, form="dfa", covariates=poll)
+kemz.2.pcod=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=pcod)
+kemz.2.arr=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=arrtooth)
+
+ssb2.out=cbind(model=c("2 trend", "2.Pollock", "2.Pcod","2.Arrowtooth"),
+            AICc=round(c(kemz.2.no$AICc, kemz.2.poll$AICc, kemz.2.pcod$AICc, kemz.2.arr$AICc)))
+
+
+model.list = list(m=1, R="equalvarcov")
+cntl.list=list(minit=100, maxit=5000, allow.degen=FALSE)
+kemz.1.no= MARSS(dat.abund, model=model.list, control=cntl.list,
+               z.score=TRUE, form="dfa")
+kemz.1.poll = MARSS(dat.abund, model=model.list, control=cntl.list,
+               z.score=TRUE, form="dfa", covariates=poll)
+kemz.1.pcod=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=pcod)
+kemz.1.arr=MARSS(dat.abund, model=model.list, control=cntl.list,
+                z.score=TRUE, form="dfa", covariates=arrtooth)
+
+ssb1.out=cbind(model=c("1 trend", "1.Pollock", "1.Pcod","1.Arrowtooth"),
+            AICc=round(c(kemz.1.no$AICc, kemz.1.poll$AICc, kemz.1.pcod$AICc, kemz.1.arr$AICc)))
+
+
+print(ssb1.out, quote=FALSE)
+# model        AICc
+# [1,] 1 trend      3280
+# [2,] 1.Pollock    3362
+# [3,] 1.Pcod       3361
+# [4,] 1.Arrowtooth 3367
+print(ssb2.out, quote=FALSE)
+```
+None of the SSB indices helped model fit, and many didn't converge with the 2 trend model.
+
+###Fit oil spill covariate
+Last, we want to know if there is support for the year of the spill being anamolous. So, we creates a covariate for spill year, which is 0 in every year except 1989, in that year it's -1. Then we ask if that improves the model fit.
+
+```{r, eval=FALSE}
+spill=rep(0,33)
+spill[9]=-1
+
+model.list = list(m=1, R="equalvarcov")
+cntl.list=list(minit=200, maxit=5000, allow.degen=FALSE)
+kemz.1.no= MARSS(dat.abund, model=model.list, control=cntl.list,
+               z.score=TRUE, form="dfa")
+kemz.1.oil = MARSS(dat.abund, model=model.list, control=cntl.list,
+                  z.score=TRUE, form="dfa", covariates=spill)
+model.list = list(m=2, R="diagonal and equal")
+kemz.2.no= MARSS(dat.abund, model=model.list, control=cntl.list,
+               z.score=TRUE, form="dfa")
+kemz.2.oil = MARSS(dat.abund, model=model.list, control=cntl.list,
+                  z.score=TRUE, form="dfa", covariates=spill)
+
+print(cbind(model=c("1 trend", "1 trend + oil", "2 trend","2 trend + oil"),
+            AICc=round(c(kemz.1.no$AICc, kemz.1.oil$AICc, kemz.2.no$AICc, kemz.2.oil$AICc))), quote=FALSE)
+```
+
+We saw no evidence of an oil spill effect using this approach.  The two trend model with equalvarcov is still the best.
+
+##Best fit DFA
+Let's plot the best fit model for each species and calculate the percent variance explained. I propose this as **Figure 2** in the paper.
+
+```{r, include=FALSE, message=FALSE}
+##enter best model parameters here
+model.list = list(m=2, R="equalvarcov")
+cntl.list=list(minit=200, maxit=5000, allow.degen=FALSE)
+kemz.2 = MARSS(dat.abund, model=model.list, control=cntl.list,
+               z.score=TRUE, form="dfa")
+```
+```{r, echo=FALSE}
+###################################################
+### plotfits
+###################################################
+fit = kemz.2
+spp = rownames(dat.z)
+#pdf("NEWAbundDFAFits.pdf")
+par(mfrow=c(4,5), mar=c(0,0,0,0), oma=c(4,4,1,1))
+par(mgp = c(.6, .6, 0))
+par(tcl=.2)
+for(i in 1:length(spp)){
+  plot(years.plot,dat.z[i,],xlab="",ylab="Index", bty="L", pch=16, col="blue",
+       ylim=c(min(dat.z, na.rm=T),max(dat.z, na.rm=T)), xlim=c(1980,2014),axes=F)
+  par.mat=coef(fit,type="matrix")
+  lines(years.plot,as.vector(par.mat$Z[i,,drop=FALSE]%*%fit$states+par.mat$A[i,]), lwd=2)
+  if(i %in% c(16:20,36:40)) axis(1,at=seq(1980,2010, by=5), cex.axis=0.8)
+  if(i %in% c(1,6,11,16, 21, 26, 31,36)) axis(2, at=seq(-2,5, by=1), cex.axis=0.8)
+  box()
+  mtext(spp[i], side=3, line=-1, cex=0.5)
+}
+mtext("Year", side=1, outer=TRUE, line=2, cex=0.7)
+mtext("Standardized abundance", side=2, outer=TRUE, line=2, cex=0.7)
+#dev.off()
+```
+
+In addition to looking at the fits, we want to look at the common **trends** and **loadings**.  Before we can do that, we need to rotate the trends and loadings to make them as orthogonal as possible.
+
+```{r}
+best.fit=kemz.2
+###################################################
+### varimax
+###################################################
+# get the inverse of the rotation matrix
+H.inv = varimax(coef(best.fit, type="matrix")$Z)$rotmat
+
+
+###################################################
+### rotations
+###################################################
+Z.no.rot=coef(best.fit, type="matrix")$Z
+# rotate factor loadings
+Z.rot = coef(best.fit, type="matrix")$Z %*% H.inv   
+
+##use this if only a 1-trend model
+#Z.rot=coef(best.fit, type="matrix")$Z
+
+
+# rotate trends
+trends.rot = solve(H.inv) %*% best.fit$states
+
+##use this if only a 1-trend model
+#trends.rot=best.fit$states
+trends.no.rot=best.fit$states
+```
+Now, we can plot the rotated loadings and trends. I plotted the loadings as a bargraph here, but think they will be better shown in the manuscript as the bivariate plot further down.  The trend plot would be **Figure 3**.
+```{r, echo=FALSE}
+###################################################
+### plotfacloadings
+##################################################
+sp.names=read.csv("data/Abund.names.csv", header=T)
+
+minZ = 0.2
+ylims = c(-1.1*max(abs(Z.rot)), 1.1*max(abs(Z.rot)))
+#pdf("AbundDFAloadings2trend.pdf")
+par(mfrow=c(1,2), mar=c(1,3,0,0), oma=c(1,1,1,1), xpd=T)
+par(mgp = c(.6, .6, 0))
+barplot(Z.rot[,1], horiz=TRUE, xlim=c(-0.9,0.8), xlab='', cex.axis=0.6)
+box()
+text(x=-0.95,y=seq(from=1,by=1.2, length.out=40), lab=sp.names$ShortName, xpd=T, adj=1, cex=0.5)
+#mtext(text=spnames$LongName[ind],side=2,cex=0.2, padj=1)
+
+par(mar=c(1,0,0,3))
+barplot(Z.rot[,2], horiz=TRUE, xlim=c(-0.9,0.8), xlab='', cex.axis=0.6)
+box()
+
+###################################################
+### plottrends
+###################################################
+# get ts of trends
+ts.trends = t(trends.rot)
+plab=c('a','b')
+#pdf("AbundDFA2trends.pdf")
+par(mfrow=c(ceiling(dim(ts.trends)[2]/2),2), mar=c(3,2,1.5,0.5), oma=c(0.4,1,1,1))
+# loop over each trend
+for(i in 1:dim(ts.trends)[2]) {
+  # set up plot area
+  plot(seq(1981,2013),ts.trends[,i],
+       ylim=c(-1.1,1.1)*max(abs(ts.trends)), 
+       type="n", lwd=2, bty="L", 
+       xlab="", ylab="",  yaxt="n")
+  # draw zero-line
+  abline(h=0, col="grey80")
+   abline(v=seq(1985,2010,by=5), lty=1, col='grey80')
+  # plot trend line
+  par(new=TRUE)
+  plot(seq(1981,2013),ts.trends[,i],
+       ylim=c(-1.1,1.1)*max(abs(ts.trends)), 
+       type="o", lwd=2, bty="L", pch=16,
+       xlab="", ylab="", xaxt="n")
+ 
+  # add panel labels
+  #mtext(paste("Trend",i,sep=" "), side=3, line=0.5)
+  mtext(paste(plab[i],')', sep=""), side=3, line=0, adj=-0.1,cex=1, font=2)
+  #mtext('b)', side=3, line=0, adj=-0.2, cex=1)
+  #axis(1,12*(0:dim(dat.abund)[2])+1,1980+0:dim(dat.abund)[2])
+} # end i loop (trends)
+
+#dev.off()
+```
+
+We can also calculate the proportion of variance explained by the full model, using sum of squares.  The calculated value seems low to me, but I will check into whether it's reasonable.
+```{r}
+##rsquared
+pred = Z.no.rot %*% trends.no.rot
+SSres = sum((pred - dat.z) ^ 2, na.rm=T)
+SStot = sum((mean(dat.z, na.rm=T) - dat.z) ^ 2, na.rm=T)
+R2 = 1 - SSres / SStot
+print(R2)
+```
+
+```{r, include=FALSE}
+write.csv(ts.trends,"Abund.trends2.csv")
+load=cbind(spp,Trend1=Z.rot[,1],Trend2=Z.rot[,2])
+write.csv(load, "Abund.loadings.csv", row.names=F)
+
+ts.trends=read.csv("data/Abund.trends2.csv",header=T)[,2:3]
+Z.rot=read.csv("data/Abund.loadings.csv", header=T)[,2:3]
+
+par(mfrow=c(1,2))
+plot(seq(1981,2013),trends.rot, type='l')
+plot(seq(1981,2013),ts.trends[,1], type='l')
+
+
+```
+
+Now, let's look at how the individual species group together, based on their loadings on the common trends.  Here is a cluster analysis based on euclidian distances.  The cluster dendrogram could appear in the supplementary material, but I probably wouldn't put it in the main text.  
+
+```{r}
+##cluster diagrams of loadings
+
+di <- dist(Z.no.rot[,1:2], method="euclidean",diag = TRUE, upper = TRUE)
+
+
+library(rioja)
+x2=chclust(di, method = "coniss")
+bstick(x2,20)
+
+x=hclust(di, method = "complete", members=NULL)
+y=rect.hclust(x, h=1)
+
+## S3 method for class 'hclust'
+#pdf("AbundClust2trend.pdf")
+par(mfrow=c(1,1),mar=c(1,4,0,0), oma=c(0,0,0,0))
+plot(x, labels = sp.names$LongName, hang = 0.1,
+     axes = TRUE, frame.plot = FALSE, ann = TRUE,
+     main = "",
+     sub = NULL, xlab = "", ylab = "Height")
+```
+Breaking the dendrogram into 4 groups, we can then make a bivariate plot of the loadings, showing the four different groups using different colored text. This plot shows the groupings pretty nicely, so I suggest something like this for **Figure 4**.
+```{r, echo=FALSE}
+#sp.names$groups=NA
+#sp.names$group[x$order[1:14]]=1
+#sp.names$group[x$order[15:25]]=2
+#sp.names$group[x$order[26:33]]=3
+#sp.names$group[x$order[34:40]]=4
+
+library(calibrate)
+par(mfrow=c(1,1),mar=c(4,4,1,1), oma=c(0,0,0,0))
+plot(Z.rot[,1],Z.rot[,2], ylab="Trend 2", xlab="Trend 1", xlim=c(-1.3,1.2), ylim=c(-.6,.4))
+textxy(Z.rot[,1],Z.rot[,2], sp.names$spp, cex= 0.5, offset=0.6)
+abline(v=0)
+abline(h=0)
+rect(-0.2,-0.2,0.2,0.2)
+#abline(h=c(-0.2,0.2))
+#abline(v=c(-0.2,0.2))
+#dev.off()
+
+
+
+###Diversity metrics
+# 
+# occAll=read.csv("occurrenceStatsForDFA.csv", header=T)
+# IchSR=apply(occAll,1,sum,na.rm=T)
+# 
+# SWabund=read.csv('DensityForDFA.csv', header=T)
+# SWabund.cut=SWabund
+# IchSW=diversity(SWabund.cut, index="shannon")
+# biod=data.frame(year=years.plot, IchSR, IchSW)
+# write.csv(biod,'IchthyoBiod.csv', row.names=F)
+
+
+plot(cor.mat$ENSO, cor.mat$trend2)
+
+textxy(cor.mat$ENSO, cor.mat$trend2,cor.mat$X+1980)
+
+plot(seq(1981,2013), cor.mat$trend2, type='o')
+lines(seq(1981,2013), cor.mat$ENSO, type='o', col='blue')
+yrs=seq(1981,2013)[-c(4,6,32)]
+plot(cor.mat$ENSO,dat.z[12,])
+textxy(cor.mat$ENSO[-c(4,6,32)], dat.z[12,-c(4,6,32)],yrs)
+
+plot(cor.mat$ENSO,dat.z[22,])
+textxy(cor.mat$ENSO, dat.z[22,],cor.mat$X+1980)
+
+
+```
+
