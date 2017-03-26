@@ -53,7 +53,7 @@ for(i in 1:length(spp)){
   if(i %in% c(16:20,36:40)) axis(1,at=seq(1990,2010, by=10), cex.axis=0.8)
   if(i %in% c(1,6,11,16, 21, 26, 31,36)) axis(2, at=seq(-2,5, by=1), cex.axis=0.8)
   box()
-  mtext(spp[i], side=3, line=-1, cex=0.5)
+  mtext(sp.names$spp[i], side=3, line=-1, cex=0.5)
 }
 
 
@@ -323,6 +323,27 @@ mtext("Standardized abundance", side=2, outer=TRUE, line=2, cex=0.7)
 #dev.off()
 ```
 
+```{r}
+pdf("plots/AppB.RawAbund.pdf")
+par(mfrow=c(4,5), mar=c(0,0,0,0), oma=c(4,4,1,1))
+par(mgp = c(.6, .6, 0))
+par(tcl=.2)
+for(i in 1:length(spp)){
+  plot(years.plot,dat.z[i,],xlab="",ylab="Index", bty="L", pch=16, col="blue",
+       ylim=c(min(dat.z, na.rm=T),max(dat.z, na.rm=T)), xlim=c(1980,2014),axes=F)
+  par.mat=coef(fit,type="matrix")
+  lines(years.plot,as.vector(par.mat$Z[i,,drop=FALSE]%*%fit$states+par.mat$A[i,]), lwd=2)
+  if(i %in% c(16:20,36:40)) axis(1,at=seq(1980,2010, by=5), cex.axis=0.8)
+  if(i %in% c(1,6,11,16, 21, 26, 31,36)) axis(2, at=seq(-2,5, by=1), cex.axis=0.8)
+  box()
+  mtext(spp[i], side=3, line=-1, cex=0.5)
+}
+mtext("Year", side=1, outer=TRUE, line=2, cex=0.7)
+mtext("Standardized abundance", side=2, outer=TRUE, line=2, cex=0.7)
+
+```
+
+
 In addition to looking at the fits, we want to look at the common **trends** and **loadings**.  Before we can do that, we need to rotate the trends and loadings to make them as orthogonal as possible.
 
 ```{r}
@@ -367,7 +388,7 @@ par(mgp = c(.6, .6, 0))
 barplot(Z.rot[,1], horiz=TRUE, xlim=c(-0.9,0.8), xlab='', cex.axis=0.6)
 box()
 text(x=-0.95,y=seq(from=1,by=1.2, length.out=40), lab=sp.names$ShortName, xpd=T, adj=1, cex=0.5)
-#mtext(text=spnames$LongName[ind],side=2,cex=0.2, padj=1)
+
 
 par(mar=c(1,0,0,3))
 barplot(Z.rot[,2], horiz=TRUE, xlim=c(-0.9,0.8), xlab='', cex.axis=0.6)
@@ -464,16 +485,38 @@ Breaking the dendrogram into 4 groups, we can then make a bivariate plot of the 
 #sp.names$group[x$order[26:33]]=3
 #sp.names$group[x$order[34:40]]=4
 
+no.plot=which(abs(Z.rot[,1])<0.2 & abs(Z.rot[,2])<0.2)
+
+no.lab=c(no.plot,1,4,5,8,9,14,31,32,33, 36)
+##where to plot labels
+#gadus moves down, bathyagonus moves up, ammodytes moves up, gadus moves up, platichtys moves down, icelinus moves up, protomuctopum moves up
+lab.Zrotx=Z.rot[-no.plot,1] * 1.1
+
+lab.Zroty=Z.rot[-no.plot,2] * 1.1
+
 library(calibrate)
+pdf("Loadingsbiplot.pdf", width=6)
 par(mfrow=c(1,1),mar=c(4,4,1,1), oma=c(0,0,0,0))
-plot(Z.rot[,1],Z.rot[,2], ylab="Trend 2", xlab="Trend 1", xlim=c(-1.3,1.2), ylim=c(-.6,.4))
-textxy(Z.rot[,1],Z.rot[,2], sp.names$spp, cex= 0.5, offset=0.6)
+plot(Z.rot[-no.plot,1],Z.rot[-no.plot,2], ylab="Trend 2", xlab="Trend 1", xlim=c(-1.22,1.22), ylim=c(-.57,.37))
+#text(lab.Zrotx,lab.Zroty, sp.names$spp[-no.plot], cex=0.6)
+textxy(Z.rot[-no.lab,1],Z.rot[-no.lab,2], sp.names$spp[-no.lab], cex= 0.5, offset=0.55)
+text(Z.rot[1,1]-.2,Z.rot[1,2]-.015 , sp.names$spp[1], cex= 0.5)
+text(Z.rot[33,1]-.2,Z.rot[33,2] , sp.names$spp[33], cex= 0.5)
+text(Z.rot[5,1]+.15,Z.rot[5,2]-.01 , sp.names$spp[5], cex= 0.5)
+text(Z.rot[14,1]+.15,Z.rot[14,2]+.012 , sp.names$spp[14], cex= 0.5)
+text(Z.rot[31,1]+.2,Z.rot[31,2] , sp.names$spp[31], cex= 0.5)
+text(Z.rot[36,1]+.25,Z.rot[36,2]+.012 , sp.names$spp[36], cex= 0.5)
+text(Z.rot[9,1]+.12,Z.rot[9,2]+.012 , sp.names$spp[9], cex= 0.5)
+text(Z.rot[32,1]-.15,Z.rot[32,2]-.012 , sp.names$spp[32], cex= 0.5)
+text(Z.rot[8,1]-.18,Z.rot[8,2]-.014 , sp.names$spp[8], cex= 0.5)
+text(Z.rot[4,1]-.23,Z.rot[4,2] , sp.names$spp[4], cex= 0.5)
+
 abline(v=0)
 abline(h=0)
-rect(-0.2,-0.2,0.2,0.2)
+#rect(-0.2,-0.2,0.2,0.2)
 #abline(h=c(-0.2,0.2))
 #abline(v=c(-0.2,0.2))
-#dev.off()
+dev.off()
 
 
 
