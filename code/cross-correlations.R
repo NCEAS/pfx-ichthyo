@@ -55,14 +55,15 @@ manipulate({
   
   out <- out %>% mutate(sig = ifelse(u < 0, "low", ifelse(l > 0, "high", "none")))
   
-  ggplot(out, aes(i+k+1980, r)) + 
+  ggplot(out, aes(i+k+1979, r)) + 
     geom_line() +
     geom_ribbon(aes(ymin = l, ymax = u), alpha = 0.2) +
     facet_grid(x~y) +
     geom_hline(yintercept = 0, lty = 2, colour = "grey50") +
     geom_point(data = filter(out, sig != "none"), aes(color = sig)) +
-    theme_light() + guides(colour = FALSE) #+
-    #theme(panel.grid.major = element_blank(),
+    theme_light() + guides(colour = FALSE) +
+    labs(x="Year", y="Correlation Coefficient")
+  #theme(panel.grid.major = element_blank(),
      # panel.grid.minor = element_blank())
 }, k = slider(4, 33, 11), method = picker("pearson", "spearman", "kendall"), pyper = picker(TRUE, FALSE))
 

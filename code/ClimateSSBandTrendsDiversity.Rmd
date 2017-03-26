@@ -154,7 +154,7 @@ climate=read.csv('data/ClimateCovarsSpr.csv',header=T)
 SST=read.csv('data/all.sst.csv',header=T)
 ssb=read.csv('data/ssbout.csv', header=T) ##ssb is offset one year-- so 1980-2012
 
-cor.mat=cbind(climate[,-2],sst=c(NA,SST[1:32,5]),ssb[,c(2:5)],trend1=tr2[,1],trend2=tr2[,2],biod[,2:3])
+cor.mat=cbind(climate[,-2],sst=SST[1:33,5],ssb[,c(2:5)],trend1=tr2[,1],trend2=tr2[,2],biod[,2:3])
 cor.mat.scale=apply(cor.mat,2,scale)
 saveRDS(cor.mat, file = "correlation-matrix.rds")
 ```
