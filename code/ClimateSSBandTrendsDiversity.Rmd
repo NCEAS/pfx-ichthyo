@@ -19,7 +19,7 @@ library(reshape)
 library(ggplot2)
 ```
 ```{r, echo=F}
-trends=read.csv("data/Abund.trends2.csv", header=T)
+trends=read.csv('data/Abund.trends2.csv', header=T)
 tr2=trends[,-1]
 names(tr2)=c('trend1','trend2')
 
@@ -82,20 +82,20 @@ nsync<-function(x) {
 
 #X=x
 w <- 11
-sy <- sapply((w+1):nrow(X), function(i) sqrt(synchrony(X[(i - w):i, ])))
-wc <- sapply((w+1):nrow(X), function(i) wcv(X[(i - w):i, ]))
-wct <- sapply((w+1):nrow(X), function(i)
+sy <- sapply((w):nrow(X), function(i) sqrt(synchrony(X[(i - w):i, ])))
+wc <- sapply((w):nrow(X), function(i) wcv(X[(i - w):i, ]))
+wct <- sapply((w):nrow(X), function(i)
     sd(rowSums(X[(i - w):i, ], na.rm=T), na.rm=T)/mean(rowSums(X[(i -w):i,], na.rm=T ), na.rm=T))
 
-syg <- sapply((w+1):nrow(X), function(i) nsync(X[(i - w):i, ]))
+syg <- sapply((w):nrow(X), function(i) nsync(X[(i - w):i, ]))
 
 yrs=seq(1981,2013) #[-c(4,6,32)]
 #pdf("syncNoPollock.pdf", width = 5, height = 9)
 par(mfrow=c(2,2), mai=c(0.7,0.7,0.2,0.1))
-plot(yrs[(1+w):length(yrs)],sy, type="o")
-plot(yrs[(1+w):length(yrs)],wc, type="o")
-plot(yrs[(1+w):length(yrs)],wct, type="o")
-plot(yrs[(1+w):length(yrs)],syg, type="o")
+plot(yrs[(w):length(yrs)],sy, type="o")
+plot(yrs[(w):length(yrs)],wc, type="o")
+plot(yrs[(w):length(yrs)],wct, type="o")
+plot(yrs[(w):length(yrs)],syg, type="o")
 #matplot(yrs[(1+w):length(yrs)], X[6:33,], type = "l", log="")
 #dev.off()
 ```
@@ -104,12 +104,12 @@ Next, let's look at the two synchrony metrics with each species jack-knifed out 
 ```{r, echo=F}
 
 sy2 <- sapply(1:ncol(X), function(j)
-  sapply((w+1):nrow(X), function(i) sqrt(synchrony(X[(i - w):i, -j]))))
-matplot(yrs[(1+w):length(yrs)], sy2, type="l", col = "black")
+  sapply((w):nrow(X), function(i) sqrt(synchrony(X[(i - w):i, -j]))))
+matplot(yrs[(w):length(yrs)], sy2, type="l", col = "black")
 
 syg2 <- sapply(1:ncol(X), function(j)
-  sapply((w+1):nrow(X), function(i) nsync(X[(i - w):i, -j])))
-matplot(yrs[(1+w):length(yrs)], syg2, type="l", col = "black")
+  sapply((w):nrow(X), function(i) nsync(X[(i - w):i, -j])))
+matplot(yrs[(w):length(yrs)], syg2, type="l", col = "black")
 
 ```
 
@@ -137,11 +137,11 @@ axis(2, at=seq(0,12,by=2), labels=seq(0,12,by=2), cex.axis=0.8)
 
 ##
 par(mar=c(3,4,0,4))
-matplot(yrs[(1+w):length(yrs)], syg2, type="n", col = c('blue',rep('black',nrow(syg2)-1)), 
+matplot(yrs[(w):length(yrs)], syg2, type="n", col = c('blue',rep('black',nrow(syg2)-1)), 
     lwd=c(2,rep(1,nrow(syg2)-1)), xlim=c(1981,2013), axes=F, ylab="Synchrony", xlab="")
 abline(v=c(seq(1980,2010,by=5)), col='grey90')
-matlines(yrs[(1+w):length(yrs)], syg2, type="l", col = c('blue',rep('black',nrow(syg2)-1)), lwd=c(2,rep(1,nrow(syg2)-1)))
-lines(yrs[(1+w):length(yrs)],syg, lwd=2, col='grey80')
+matlines(yrs[(w):length(yrs)], syg2, type="l", col = c('blue',rep('black',nrow(syg2)-1)), lwd=c(2,rep(1,nrow(syg2)-1)))
+lines(yrs[(w):length(yrs)],syg, lwd=2, col='grey80')
 axis(2, at=seq(-0.2,0.2,by=.1), labels=seq(-0.2,0.2,by=.1), cex.axis=1)
 abline(h=0)
 box()
