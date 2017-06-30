@@ -123,7 +123,9 @@ poll.ssb<-poll %>%
           rename(poll.ssb=Female.Spawn.thousand.ton)
 
 
-pcod=read.csv('data/GOAPcod2016SAFETable2.17.csv', header=T, stringsAsFactors = T)
+#pcod=read.csv('data/GOAPcod2016SAFETable2.17.csv', header=T, stringsAsFactors = T)
+
+pcod=read.csv('data/GOAPcod2017SAFE.csv', header=T, stringsAsFactors = F)
 
 pcod.ssb<-pcod %>%
   filter(Year %in% c(1980:2012)) %>%
