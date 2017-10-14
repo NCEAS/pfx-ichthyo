@@ -9,7 +9,7 @@ This document plots the DFA trends and loadings for the best-fit model, and expl
 
 One potential message emerging from all of this is that pollock is a strong driver of the icthyoplankton community dynamics, and particularly in the 1980s and 1990s.  After pollock declined in the mid-90s, stronger relationships between ichthyoplankton abundances and climate drivers have begun to emerge.  
 
-##Diversity trends
+##Investigating diversity trends
 Here are the Species Richness and Shannon Diversity trends plotted over time.
 
 ```{r, include=F}
@@ -54,8 +54,8 @@ prpoll=SWabund[,1]/rowSums(SWabund)
 prpoll[c(4,6,32)]=NA
 ```
 
-##Synchrony
-The last thing I want to look at here are the synchrony indices. These gives us a sense of how similar or different each species is behaving.  I print the code out here since these are custom functions.
+##Exploring metrics of synchrony
+The last thing I want to look at here are the synchrony indices. These gives us a sense of how similar or different each species is behaving through time.  I print the code out here since these are custom functions.
 
 ```{r}
 x <- read.csv("data/DensityForDFA.csv", stringsAsFactors = FALSE)
@@ -100,7 +100,7 @@ plot(yrs[(w):length(yrs)],syg, type="o")
 #dev.off()
 ```
 
-Next, let's look at the two synchrony metrics with each species jack-knifed out one at a time.  This lets us see how much each species is affecting the synchrony metric. Both plots show the dominant role of pollock, but it influences the first synchrony metric more strongly.  The first metric suggests synchrony is flat or declining, whereas the 2nd shows asynchrony in the early part of the time series, with increasing synchrony during the 90s, that has flattened out, or possibly declined more recently.  The second metric is supposed to be less influenced by uneven communities like this one, so it's probably more reliable.
+Next, let's look at the two synchrony metrics with each species jack-knifed out one at a time.  This lets us see how much each species is affecting the synchrony metric. Both plots show the dominant role of pollock, but it influences the first synchrony metric more strongly.  The first metric suggests synchrony is flat or declining, whereas the 2nd shows asynchrony in the early part of the time series, with increasing synchrony during the 90s, that has flattened out, or possibly declined more recently.  The second metric (Gross) is supposed to be less influenced by uneven communities like this one, so it's probably more reliable.
 ```{r, echo=F}
 
 sy2 <- sapply(1:ncol(X), function(j)
@@ -113,6 +113,7 @@ matplot(yrs[(w):length(yrs)], syg2, type="l", col = "black")
 
 ```
 
+Now, we put species richness, simpon's biodiversity, and Gross's synchrony metric (jacknifed) together into a single plot.  This is Figure 2 in the manuscript.
 
 ```{r}
 par(mfrow=c(3,1), mar=c(0,4,1,4), oma=c(1,1,1,1))
