@@ -9,6 +9,8 @@ This document contains the code and plots for fitting a DFA to the ichthyo. abun
 library(MARSS)
 library(xtable)
 
+library(ggplot2)
+library(ggrepel)
 #setwd('/users/kristinmarshall/dropbox/Ichthyo_IndexStandardization/')
 
 abund=read.csv('data/DensityForDFA.csv', header=T)
@@ -485,6 +487,9 @@ Breaking the dendrogram into 4 groups, we can then make a bivariate plot of the 
 #sp.names$group[x$order[26:33]]=3
 #sp.names$group[x$order[34:40]]=4
 
+
+set.seed(30)
+
 no.plot=which(abs(Z.rot[,1])<0.2 & abs(Z.rot[,2])<0.2)
 
 no.lab=c(no.plot,1,4,5,8,9,14,31,32,33, 36)
@@ -494,8 +499,21 @@ lab.Zrotx=Z.rot[-no.plot,1] * 1.1
 
 lab.Zroty=Z.rot[-no.plot,2] * 1.1
 
+row.names(Z.rot)=sp.names$spp
+row.names(Z.rot)[1]="Gadus.chalcogrammus"
+Z.rot.plot=Z.rot[-no.plot,]
+
+pdf("LoadingsPlotv2.pdf", width=6, height=6)
+ggplot(Z.rot.plot) +
+  geom_vline(xintercept=0, colour="white", size=2 ) +
+  geom_hline(yintercept = 0, colour="white", size=2) +
+  geom_point(aes(Trend1,Trend2)) +
+  geom_text_repel(aes(Trend1, Trend2), label=row.names(Z.rot.plot))
+dev.off()
+
+
 library(calibrate)
-pdf("Loadingsbiplot.pdf", width=6)
+pdf("Loadingsbiplot.pdf", width=6, height=6)
 par(mfrow=c(1,1),mar=c(4,4,1,1), oma=c(0,0,0,0))
 plot(Z.rot[-no.plot,1],Z.rot[-no.plot,2], ylab="Trend 2", xlab="Trend 1", xlim=c(-1.22,1.22), ylim=c(-.57,.37))
 #text(lab.Zrotx,lab.Zroty, sp.names$spp[-no.plot], cex=0.6)
