@@ -123,9 +123,7 @@ model.tbl=read.csv('data/AbundDFA_AIC.csv', header=T)
 print(model.tbl)
 ```
 ##Fit DFA models with covariates
-The next step is to see if we can improve the model fit by adding explanatory covariates.  We looked at three types of covariates: environmental indices, and index for the EVOS spill year, spawning stock biomasses of pollock, pcod, and arrowtooth. The take-home was that none of these covariates improved the AICc over the two trend model.  We output the code below.
-
-**QUESTION: SHOULD WE LOOK AT OTHER SPECIES SSB AS WELL?? I also tried halibut, but the time series was too short.  My sense is that this is sufficient because nothing we looked at was supported, mostly due to the model complexity I think.**
+The next step is to see if we can improve the model fit by adding explanatory covariates.  We looked at three types of covariates: environmental indices, an index for the EVOS spill year, spawning stock biomasses of pollock, pcod, and arrowtooth. The take-home was that none of these covariates improved the AICc over the two trend model.  I output the code below.
 
 ###Environmental covariates
 First, let's look at the environmental covariates.  We looked for relationships with SST, ENSO, NPGO, PDO, NPI, and Upwelling.
@@ -291,7 +289,7 @@ print(cbind(model=c("1 trend", "1 trend + oil", "2 trend","2 trend + oil"),
 We saw no evidence of an oil spill effect using this approach.  The two trend model with equalvarcov is still the best.
 
 ##Best fit DFA
-Let's plot the best fit model for each species and calculate the percent variance explained. I propose this as **Figure 2** in the paper.
+Let's plot the best fit model for each species and calculate the percent variance explained. This is **Appendix C** in the paper.
 
 ```{r, include=FALSE, message=FALSE}
 ##enter best model parameters here
@@ -375,26 +373,26 @@ trends.rot = solve(H.inv) %*% best.fit$states
 #trends.rot=best.fit$states
 trends.no.rot=best.fit$states
 ```
-Now, we can plot the rotated loadings and trends. I plotted the loadings as a bargraph here, but think they will be better shown in the manuscript as the bivariate plot further down.  The trend plot would be **Figure 3**.
+Now, we can plot the rotated trends. The trend plot is **Figure 3**.
 ```{r, echo=FALSE}
 ###################################################
 ### plotfacloadings
 ##################################################
 sp.names=read.csv("data/Abund.names.csv", header=T)
 
-minZ = 0.2
-ylims = c(-1.1*max(abs(Z.rot)), 1.1*max(abs(Z.rot)))
-#pdf("AbundDFAloadings2trend.pdf")
-par(mfrow=c(1,2), mar=c(1,3,0,0), oma=c(1,1,1,1), xpd=T)
-par(mgp = c(.6, .6, 0))
-barplot(Z.rot[,1], horiz=TRUE, xlim=c(-0.9,0.8), xlab='', cex.axis=0.6)
-box()
-text(x=-0.95,y=seq(from=1,by=1.2, length.out=40), lab=sp.names$ShortName, xpd=T, adj=1, cex=0.5)
-
-
-par(mar=c(1,0,0,3))
-barplot(Z.rot[,2], horiz=TRUE, xlim=c(-0.9,0.8), xlab='', cex.axis=0.6)
-box()
+# minZ = 0.2
+# ylims = c(-1.1*max(abs(Z.rot)), 1.1*max(abs(Z.rot)))
+# #pdf("AbundDFAloadings2trend.pdf")
+# par(mfrow=c(1,2), mar=c(1,3,0,0), oma=c(1,1,1,1), xpd=T)
+# par(mgp = c(.6, .6, 0))
+# barplot(Z.rot[,1], horiz=TRUE, xlim=c(-0.9,0.8), xlab='', cex.axis=0.6)
+# box()
+# text(x=-0.95,y=seq(from=1,by=1.2, length.out=40), lab=sp.names$ShortName, xpd=T, adj=1, cex=0.5)
+# 
+# 
+# par(mar=c(1,0,0,3))
+# barplot(Z.rot[,2], horiz=TRUE, xlim=c(-0.9,0.8), xlab='', cex.axis=0.6)
+# box()
 
 ###################################################
 ### plottrends
@@ -431,7 +429,7 @@ for(i in 1:dim(ts.trends)[2]) {
 #dev.off()
 ```
 
-We can also calculate the proportion of variance explained by the full model, using sum of squares.  The calculated value seems low to me, but I will check into whether it's reasonable.
+We can also calculate the proportion of variance explained by the full model, using sum of squared errrors.
 ```{r}
 ##rsquared
 pred = Z.no.rot %*% trends.no.rot
@@ -442,9 +440,9 @@ print(R2)
 ```
 
 ```{r, include=FALSE}
-write.csv(ts.trends,"Abund.trends2.csv")
-load=cbind(spp,Trend1=Z.rot[,1],Trend2=Z.rot[,2])
-write.csv(load, "Abund.loadings.csv", row.names=F)
+#write.csv(ts.trends,"Abund.trends2.csv")
+#load=cbind(spp,Trend1=Z.rot[,1],Trend2=Z.rot[,2])
+#write.csv(load, "Abund.loadings.csv", row.names=F)
 
 ts.trends=read.csv("data/Abund.trends2.csv",header=T)[,2:3]
 Z.rot=read.csv("data/Abund.loadings.csv", header=T)[,2:3]
@@ -479,7 +477,8 @@ plot(x, labels = sp.names$LongName, hang = 0.1,
      main = "",
      sub = NULL, xlab = "", ylab = "Height")
 ```
-Breaking the dendrogram into 4 groups, we can then make a bivariate plot of the loadings, showing the four different groups using different colored text. This plot shows the groupings pretty nicely, so I suggest something like this for **Figure 4**.
+
+Breaking the dendrogram into 4 groups, we can then make a bivariate plot of the loadings, showing the four different groups using different colored text. This plot is **Figure 4**.
 ```{r, echo=FALSE}
 #sp.names$groups=NA
 #sp.names$group[x$order[1:14]]=1
