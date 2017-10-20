@@ -2,18 +2,23 @@
 title: "Fit DFA to Ichthyo Abundance"
 author: "Kristin Marshall"
 date: "August 23, 2016"
-output: word_document
+output:
+  html_document: default
+  word_document: default
 ---
 This document contains the code and plots for fitting a DFA to the ichthyo. abundance data. The sections below step througg the model fitting and model selection procedure, show how I fit various covariates, and plots DFA fits and common trends. I also included a cluster analysis that groups species based on their loadings values, and a plot that summarizes those results.  I call out in the text 3 potential figures to include in the final manuscript. I'm imagining Figure 1 will be a map of the survey area, and Figures 2-4 are labeled below.
 ```{r, include=FALSE}
 library(MARSS)
 library(xtable)
-
+library(calibrate)
 library(ggplot2)
 library(ggrepel)
+library(rioja)
+library(ggsidekick)
 #setwd('/users/kristinmarshall/dropbox/Ichthyo_IndexStandardization/')
 
-abund=read.csv('data/DensityForDFA.csv', header=T)
+getwd()
+abund=read.csv('../data/DensityForDFA.csv', header=T)
 
 spnames=rev(names(abund))
 names(abund)=spnames
@@ -55,7 +60,7 @@ for(i in 1:length(spp)){
   if(i %in% c(16:20,36:40)) axis(1,at=seq(1990,2010, by=10), cex.axis=0.8)
   if(i %in% c(1,6,11,16, 21, 26, 31,36)) axis(2, at=seq(-2,5, by=1), cex.axis=0.8)
   box()
-  mtext(sp.names$spp[i], side=3, line=-1, cex=0.5)
+  mtext(spp[i], side=3, line=-1, cex=0.5)
 }
 
 
@@ -115,11 +120,11 @@ model.tbl$Ak.wt.cum = cumsum(model.tbl$Ak.wt)
 
 print(model.tbl)
 
-write.csv(model.tbl,'data/AbundDFA_AIC.csv')
+write.csv(model.tbl,'../data/AbundDFA_AIC.csv')
 ```
 We output the model table here to show that the best-fit model is a two trend model with a covariance matrix with a single parameter on the diagonal, and a second parameter on the diagonal (equalvarcov). 
 ```{r, echo=FALSE}
-model.tbl=read.csv('data/AbundDFA_AIC.csv', header=T)
+model.tbl=read.csv('../data/AbundDFA_AIC.csv', header=T)
 print(model.tbl)
 ```
 ##Fit DFA models with covariates
@@ -128,8 +133,8 @@ The next step is to see if we can improve the model fit by adding explanatory co
 ###Environmental covariates
 First, let's look at the environmental covariates.  We looked for relationships with SST, ENSO, NPGO, PDO, NPI, and Upwelling.
 ```{r, eval=FALSE}
-temp=read.csv('data/SSTcovar.csv', header=T)
-climate=read.csv('data/ClimateCovars.csv',header=T)
+temp=read.csv('../data/SSTcovar.csv', header=T)
+climate=read.csv('../data/ClimateCovars.csv',header=T)
 asst=temp$asst[1:33]
 wsst=temp$wsst[1:33]
 enso=climate$ENSO[7:39]
@@ -217,7 +222,7 @@ We conclude that including environmental covariates do not improve the one trend
 ###Fit SSB covariates
 Next, we try it for pollock, pcod, and arrowthooth, for both the 1 trend and 2 trend models.
 ```{r, eval=FALSE}
-SSB=read.csv('data/ssbout.csv', header=T)
+SSB=read.csv('../data/ssbout.csv', header=T)
 #ind=which(SSB$Year >1980 & SSB$Year<2014)
 poll=SSB$V2/10^5
 pcod=SSB$V3[ind]/10^5
@@ -291,17 +296,20 @@ We saw no evidence of an oil spill effect using this approach.  The two trend mo
 ##Best fit DFA
 Let's plot the best fit model for each species and calculate the percent variance explained. This is **Appendix C** in the paper.
 
-```{r, include=FALSE, message=FALSE}
+```{r, include=FALSE, eval=F, message=FALSE}
 ##enter best model parameters here
 model.list = list(m=2, R="equalvarcov")
 cntl.list=list(minit=200, maxit=5000, allow.degen=FALSE)
 kemz.2 = MARSS(dat.abund, model=model.list, control=cntl.list,
                z.score=TRUE, form="dfa")
+
+saveRDS(kemz.2,"../data/best_fit_DFA.rds")
 ```
 ```{r, echo=FALSE}
 ###################################################
 ### plotfits
 ###################################################
+kemz.2=readRDS("../data/best_fit_DFA.rds")
 fit = kemz.2
 spp = rownames(dat.z)
 #pdf("NEWAbundDFAFits.pdf")
@@ -323,8 +331,10 @@ mtext("Standardized abundance", side=2, outer=TRUE, line=2, cex=0.7)
 #dev.off()
 ```
 
+##Indices of Abundance
+Here are the plots of the standardized index of abundance by species, **Appendix B** in the paper.
 ```{r}
-pdf("plots/AppB.RawAbund.pdf")
+#pdf("plots/AppB.RawAbund.pdf")
 par(mfrow=c(4,5), mar=c(0,0,0,0), oma=c(4,4,1,1))
 par(mgp = c(.6, .6, 0))
 par(tcl=.2)
@@ -378,7 +388,7 @@ Now, we can plot the rotated trends. The trend plot is **Figure 3**.
 ###################################################
 ### plotfacloadings
 ##################################################
-sp.names=read.csv("data/Abund.names.csv", header=T)
+sp.names=read.csv("../data/Abund.names.csv", header=T)
 
 # minZ = 0.2
 # ylims = c(-1.1*max(abs(Z.rot)), 1.1*max(abs(Z.rot)))
@@ -444,12 +454,12 @@ print(R2)
 #load=cbind(spp,Trend1=Z.rot[,1],Trend2=Z.rot[,2])
 #write.csv(load, "Abund.loadings.csv", row.names=F)
 
-ts.trends=read.csv("data/Abund.trends2.csv",header=T)[,2:3]
-Z.rot=read.csv("data/Abund.loadings.csv", header=T)[,2:3]
+#ts.trends=read.csv("../data/Abund.trends2.csv",header=T)[,2:3]
+#Z.rot=read.csv("../data/Abund.loadings.csv", header=T)[,2:3]
 
-par(mfrow=c(1,2))
-plot(seq(1981,2013),trends.rot, type='l')
-plot(seq(1981,2013),ts.trends[,1], type='l')
+#par(mfrow=c(1,2))
+#plot(seq(1981,2013),trends.rot, type='l')
+#plot(seq(1981,2013),ts.trends[,1], type='l')
 
 
 ```
@@ -459,23 +469,26 @@ Now, let's look at how the individual species group together, based on their loa
 ```{r}
 ##cluster diagrams of loadings
 
-di <- dist(Z.no.rot[,1:2], method="euclidean",diag = TRUE, upper = TRUE)
+di <- dist(Z.rot[,1:2], method="euclidean",diag = TRUE, upper = TRUE)
 
 
-library(rioja)
-x2=chclust(di, method = "coniss")
-bstick(x2,20)
+
+#x2=chclust(di)
+#plot(x2)
+#bstick(x2)
+
 
 x=hclust(di, method = "complete", members=NULL)
-y=rect.hclust(x, h=1)
+plot(x)
+y=rect.hclust(x, k=5)
 
 ## S3 method for class 'hclust'
 #pdf("AbundClust2trend.pdf")
-par(mfrow=c(1,1),mar=c(1,4,0,0), oma=c(0,0,0,0))
-plot(x, labels = sp.names$LongName, hang = 0.1,
-     axes = TRUE, frame.plot = FALSE, ann = TRUE,
-     main = "",
-     sub = NULL, xlab = "", ylab = "Height")
+# par(mfrow=c(1,1),mar=c(1,4,0,0), oma=c(0,0,0,0))
+# plot(x2, labels = sp.names$LongName, hang = 0.1,
+#      axes = TRUE, frame.plot = FALSE, ann = TRUE,
+#      main = "",
+#      sub = NULL, xlab = "", ylab = "Height")
 ```
 
 Breaking the dendrogram into 4 groups, we can then make a bivariate plot of the loadings, showing the four different groups using different colored text. This plot is **Figure 4**.
@@ -494,47 +507,38 @@ no.plot=which(abs(Z.rot[,1])<0.2 & abs(Z.rot[,2])<0.2)
 no.lab=c(no.plot,1,4,5,8,9,14,31,32,33, 36)
 ##where to plot labels
 #gadus moves down, bathyagonus moves up, ammodytes moves up, gadus moves up, platichtys moves down, icelinus moves up, protomuctopum moves up
-lab.Zrotx=Z.rot[-no.plot,1] * 1.1
+#lab.Zrotx=Z.rot[-no.plot,1] * 1.1
 
-lab.Zroty=Z.rot[-no.plot,2] * 1.1
+#lab.Zroty=Z.rot[-no.plot,2] * 1.1
 
 row.names(Z.rot)=sp.names$spp
 row.names(Z.rot)[1]="Gadus.chalcogrammus"
 Z.rot.plot=Z.rot[-no.plot,]
 
-pdf("LoadingsPlotv2.pdf", width=6, height=6)
+Z.rot.plot$Group=5
+Z.rot.plot$Group[Z.rot.plot$Trend1>.2 & abs(Z.rot.plot$Trend2)<.2]=1
+Z.rot.plot$Group[Z.rot.plot$Trend1<(-.2) & abs(Z.rot.plot$Trend2)<.2]=2
+Z.rot.plot$Group[abs(Z.rot.plot$Trend1)<.2 & Z.rot.plot$Trend2>.2]=3
+Z.rot.plot$Group[abs(Z.rot.plot$Trend1)<.2 & Z.rot.plot$Trend2<(-.2)]=4
+Z.rot.plot$Group=factor(Z.rot.plot$Group, labels=c('Strong Positive Tr 1','Strong Negative Tr 1.','Strong Positive Tr 2','Strong Neg Tr 2.','Others'))
+
+
+
+#pdf("LoadingsPlotv2.pdf", width=6, height=6)
 ggplot(Z.rot.plot) +
-  geom_vline(xintercept=0, colour="white", size=2 ) +
-  geom_hline(yintercept = 0, colour="white", size=2) +
-  geom_point(aes(Trend1,Trend2)) +
-  geom_text_repel(aes(Trend1, Trend2), label=row.names(Z.rot.plot))
-dev.off()
+ #geom_vline(xintercept=0, colour="grey80", size=2 ) +
+ #geom_hline(yintercept = 0, colour="grey80", size=2) +
+ geom_point(aes(Trend1,Trend2, color=Group)) +
+ geom_text_repel(aes(Trend1, Trend2), label=row.names(Z.rot.plot)) +
+  theme_sleek()
+#dev.off()
 
 
-library(calibrate)
-pdf("Loadingsbiplot.pdf", width=6, height=6)
-par(mfrow=c(1,1),mar=c(4,4,1,1), oma=c(0,0,0,0))
-plot(Z.rot[-no.plot,1],Z.rot[-no.plot,2], ylab="Trend 2", xlab="Trend 1", xlim=c(-1.22,1.22), ylim=c(-.57,.37))
-#text(lab.Zrotx,lab.Zroty, sp.names$spp[-no.plot], cex=0.6)
-textxy(Z.rot[-no.lab,1],Z.rot[-no.lab,2], sp.names$spp[-no.lab], cex= 0.5, offset=0.55)
-text(Z.rot[1,1]-.2,Z.rot[1,2]-.015 , sp.names$spp[1], cex= 0.5)
-text(Z.rot[33,1]-.2,Z.rot[33,2] , sp.names$spp[33], cex= 0.5)
-text(Z.rot[5,1]+.15,Z.rot[5,2]-.01 , sp.names$spp[5], cex= 0.5)
-text(Z.rot[14,1]+.15,Z.rot[14,2]+.012 , sp.names$spp[14], cex= 0.5)
-text(Z.rot[31,1]+.2,Z.rot[31,2] , sp.names$spp[31], cex= 0.5)
-text(Z.rot[36,1]+.25,Z.rot[36,2]+.012 , sp.names$spp[36], cex= 0.5)
-text(Z.rot[9,1]+.12,Z.rot[9,2]+.012 , sp.names$spp[9], cex= 0.5)
-text(Z.rot[32,1]-.15,Z.rot[32,2]-.012 , sp.names$spp[32], cex= 0.5)
-text(Z.rot[8,1]-.18,Z.rot[8,2]-.014 , sp.names$spp[8], cex= 0.5)
-text(Z.rot[4,1]-.23,Z.rot[4,2] , sp.names$spp[4], cex= 0.5)
 
-abline(v=0)
-abline(h=0)
-#rect(-0.2,-0.2,0.2,0.2)
-#abline(h=c(-0.2,0.2))
-#abline(v=c(-0.2,0.2))
-dev.off()
+```
 
+
+```{r}
 
 
 ###Diversity metrics
