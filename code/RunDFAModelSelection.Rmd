@@ -451,7 +451,7 @@ print(R2)
 
 ```{r, include=FALSE}
 #write.csv(ts.trends,"Abund.trends2.csv")
-#load=cbind(spp,Trend1=Z.rot[,1],Trend2=Z.rot[,2])
+load=cbind(spp,Trend1=Z.rot[,1],Trend2=Z.rot[,2])
 #write.csv(load, "Abund.loadings.csv", row.names=F)
 
 #ts.trends=read.csv("../data/Abund.trends2.csv",header=T)[,2:3]
@@ -502,18 +502,25 @@ Breaking the dendrogram into 4 groups, we can then make a bivariate plot of the 
 
 set.seed(30)
 
-no.plot=which(abs(Z.rot[,1])<0.2 & abs(Z.rot[,2])<0.2)
+no.plot=as.numeric(which(abs(Z.rot[,1])<0.2 & abs(Z.rot[,2])<0.2))
 
-no.lab=c(no.plot,1,4,5,8,9,14,31,32,33, 36)
+#no.lab=c(no.plot,1,4,5,8,9,14,31,32,33, 36)
 ##where to plot labels
 #gadus moves down, bathyagonus moves up, ammodytes moves up, gadus moves up, platichtys moves down, icelinus moves up, protomuctopum moves up
 #lab.Zrotx=Z.rot[-no.plot,1] * 1.1
 
 #lab.Zroty=Z.rot[-no.plot,2] * 1.1
+#Z.rot.plot=NA
+Z.rot=as.data.frame(cbind(row.names(Z.rot), Z.rot))
+names(Z.rot)=c('Species', 'Trend1','Trend2')
 
-row.names(Z.rot)=sp.names$spp
-row.names(Z.rot)[1]="Gadus.chalcogrammus"
+#row.names(Z.rot)=sp.names$spp
+Z.rot.plot$Species[1]="Gadus.chalcogrammus"
 Z.rot.plot=Z.rot[-no.plot,]
+
+Z.rot.plot$Trend1=as.numeric(Z.rot.plot$Trend1)
+Z.rot.plot$Trend2=as.numeric(Z.rot.plot$Trend2)
+
 
 Z.rot.plot$Group=5
 Z.rot.plot$Group[Z.rot.plot$Trend1>.2 & abs(Z.rot.plot$Trend2)<.2]=1
