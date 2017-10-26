@@ -1,12 +1,12 @@
 ---
 title: "Fit DFA to Ichthyo Abundance"
 author: "Kristin Marshall"
-date: "August 23, 2016"
+date: "October 23, 2017"
 output:
   html_document: default
   word_document: default
 ---
-This document contains the code and plots for fitting a DFA to the ichthyo. abundance data. The sections below step througg the model fitting and model selection procedure, show how I fit various covariates, and plots DFA fits and common trends. I also included a cluster analysis that groups species based on their loadings values, and a plot that summarizes those results.  I call out in the text 3 potential figures to include in the final manuscript. I'm imagining Figure 1 will be a map of the survey area, and Figures 2-4 are labeled below.
+This document contains the code and plots for fitting a DFA to the ichthyo. abundance data. The sections below step through model fitting and model selection procedure, show how I fit various covariates, and plots DFA fits and common trends. I also included a cluster analysis that groups species based on their loadings values, and a plot that summarizes those results.  I call out in the text figures 2-4 included in the final manuscript. 
 ```{r, include=FALSE}
 library(MARSS)
 library(xtable)
@@ -464,9 +464,9 @@ load=cbind(spp,Trend1=Z.rot[,1],Trend2=Z.rot[,2])
 
 ```
 
-Now, let's look at how the individual species group together, based on their loadings on the common trends.  Here is a cluster analysis based on euclidian distances.  The cluster dendrogram could appear in the supplementary material, but I probably wouldn't put it in the main text.  
+Now, let's look at how the individual species group together, based on their loadings on the common trends.  We can then make a bivariate plot of the loadings, showing the four different groups using different colored text. This plot is **Figure 4**.  
 
-```{r}
+```{r, include=F, eval=F}
 ##cluster diagrams of loadings
 
 di <- dist(Z.rot[,1:2], method="euclidean",diag = TRUE, upper = TRUE)
@@ -491,7 +491,7 @@ y=rect.hclust(x, k=5)
 #      sub = NULL, xlab = "", ylab = "Height")
 ```
 
-Breaking the dendrogram into 4 groups, we can then make a bivariate plot of the loadings, showing the four different groups using different colored text. This plot is **Figure 4**.
+
 ```{r, echo=FALSE}
 #sp.names$groups=NA
 #sp.names$group[x$order[1:14]]=1
@@ -511,15 +511,19 @@ no.plot=as.numeric(which(abs(Z.rot[,1])<0.2 & abs(Z.rot[,2])<0.2))
 
 #lab.Zroty=Z.rot[-no.plot,2] * 1.1
 #Z.rot.plot=NA
-Z.rot=as.data.frame(cbind(row.names(Z.rot), Z.rot))
-names(Z.rot)=c('Species', 'Trend1','Trend2')
+Z.dat=data.frame(cbind(sp.names, Z.rot))
+names(Z.dat)=c('Species', 'LongName','ShortName','Trend1','Trend2')
+
+Z.dat$meanAbund=rowMeans(dat.abund, na.rm=T)
+
 
 #row.names(Z.rot)=sp.names$spp
+Z.rot.plot=Z.dat[-no.plot,]
 Z.rot.plot$Species[1]="Gadus.chalcogrammus"
-Z.rot.plot=Z.rot[-no.plot,]
 
-Z.rot.plot$Trend1=as.numeric(Z.rot.plot$Trend1)
-Z.rot.plot$Trend2=as.numeric(Z.rot.plot$Trend2)
+
+#Z.rot.plot$Trend1=as.numeric(Z.rot.plot$Trend1)
+#Z.rot.plot$Trend2=as.numeric(Z.rot.plot$Trend2)
 
 
 Z.rot.plot$Group=5
@@ -532,12 +536,14 @@ Z.rot.plot$Group=factor(Z.rot.plot$Group, labels=c('Strong Positive Tr 1','Stron
 
 
 #pdf("LoadingsPlotv2.pdf", width=6, height=6)
-ggplot(Z.rot.plot) +
+ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
  #geom_vline(xintercept=0, colour="grey80", size=2 ) +
  #geom_hline(yintercept = 0, colour="grey80", size=2) +
- geom_point(aes(Trend1,Trend2, color=Group)) +
- geom_text_repel(aes(Trend1, Trend2), label=row.names(Z.rot.plot)) +
-  theme_sleek()
+ geom_point(aes(color=Group)) +
+ geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Species), family="Helvetica") +
+  theme_sleek() +
+  scale_colour_brewer(type="qual", palette=3)+
+  coord_cartesian(xlim=c(-1.5,1.5), ylim=c(-.6,.4))
 #dev.off()
 
 
@@ -545,8 +551,7 @@ ggplot(Z.rot.plot) +
 ```
 
 
-```{r}
-
+```{r, include=F, eval=F}
 
 ###Diversity metrics
 # 
@@ -559,19 +564,19 @@ ggplot(Z.rot.plot) +
 # biod=data.frame(year=years.plot, IchSR, IchSW)
 # write.csv(biod,'IchthyoBiod.csv', row.names=F)
 
-
-plot(cor.mat$ENSO, cor.mat$trend2)
-
-textxy(cor.mat$ENSO, cor.mat$trend2,cor.mat$X+1980)
-
-plot(seq(1981,2013), cor.mat$trend2, type='o')
-lines(seq(1981,2013), cor.mat$ENSO, type='o', col='blue')
-yrs=seq(1981,2013)[-c(4,6,32)]
-plot(cor.mat$ENSO,dat.z[12,])
-textxy(cor.mat$ENSO[-c(4,6,32)], dat.z[12,-c(4,6,32)],yrs)
-
-plot(cor.mat$ENSO,dat.z[22,])
-textxy(cor.mat$ENSO, dat.z[22,],cor.mat$X+1980)
+# 
+# plot(cor.mat$ENSO, cor.mat$trend2)
+# 
+# textxy(cor.mat$ENSO, cor.mat$trend2,cor.mat$X+1980)
+# 
+# plot(seq(1981,2013), cor.mat$trend2, type='o')
+# lines(seq(1981,2013), cor.mat$ENSO, type='o', col='blue')
+# yrs=seq(1981,2013)[-c(4,6,32)]
+# plot(cor.mat$ENSO,dat.z[12,])
+# textxy(cor.mat$ENSO[-c(4,6,32)], dat.z[12,-c(4,6,32)],yrs)
+# 
+# plot(cor.mat$ENSO,dat.z[22,])
+# textxy(cor.mat$ENSO, dat.z[22,],cor.mat$X+1980)
 
 
 ```

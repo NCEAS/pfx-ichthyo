@@ -7,8 +7,6 @@ output: word_document
 
 This document plots the DFA trends and loadings for the best-fit model, and explores potential climate and SSB drivers that could explain the trends.  Below, I calculate cross-correlations among climate covariates and DFA trends and the diversity time series and also use wavelets to look at these same relationships.  Lastly, we look at some metrics of synchrony and how they have changed through time.  
 
-One potential message emerging from all of this is that pollock is a strong driver of the icthyoplankton community dynamics, and particularly in the 1980s and 1990s.  After pollock declined in the mid-90s, stronger relationships between ichthyoplankton abundances and climate drivers have begun to emerge.  
-
 ##Investigating diversity trends
 Here are the Species Richness and Shannon Diversity trends plotted over time.
 
@@ -19,24 +17,25 @@ library(reshape)
 library(ggplot2)
 ```
 ```{r, echo=F}
-trends=read.csv('data/Abund.trends2.csv', header=T)
+getwd()
+trends=read.csv('../data/Abund.trends2.csv', header=T)
 tr2=trends[,-1]
 names(tr2)=c('trend1','trend2')
 
-load=read.csv('data/Abund.loadings.csv',header=T)
+load=read.csv('../data/Abund.loadings.csv',header=T)
 ld=load
 names(ld)=c('Species','Trend1','Trend2')
 
-spnames=read.csv("data/Abund.names.csv", header=T)
+spnames=read.csv("../data/Abund.names.csv", header=T)
 
 
 
 ###Diversity metrics
-occAll=read.csv("data/occurrenceStatsForDFA.csv", header=T)[,-1]
+occAll=read.csv("../data/occurrenceStatsForDFA.csv", header=T)[,-1]
 IchSR=apply(occAll,1,sum,na.rm=T)
 IchSR[c(4,6,32)]=NA
 
-SWabund=read.csv('data/DensityForDFA.csv', header=T)
+SWabund=read.csv('../data/DensityForDFA.csv', header=T)
 IchSW=exp(diversity(SWabund, index="shannon"))
 IchSW[c(4,6,32)]=NA
 
@@ -58,7 +57,7 @@ prpoll[c(4,6,32)]=NA
 The last thing I want to look at here are the synchrony indices. These gives us a sense of how similar or different each species is behaving through time.  I print the code out here since these are custom functions.
 
 ```{r}
-x <- read.csv("data/DensityForDFA.csv", stringsAsFactors = FALSE)
+x <- read.csv("../data/DensityForDFA.csv", stringsAsFactors = FALSE)
 
 ##remove 1984, 1986, and 2012 because no surveys in those years
 X <- x #[-c(4,6,32),]
@@ -151,9 +150,9 @@ axis(1, at=seq(1980,2013,by=5), labels=seq(1980,2013,by=5))
 
 
 
-climate=read.csv('data/ClimateCovarsSpr.csv',header=T)
-SST=read.csv('data/all.sst.csv',header=T)
-ssb=read.csv('data/ssbout.csv', header=T) ##ssb is offset one year-- so 1980-2012
+climate=read.csv('../data/ClimateCovarsSpr.csv',header=T)
+SST=read.csv('../data/all.sst.csv',header=T)
+ssb=read.csv('../data/ssbout.csv', header=T) ##ssb is offset one year-- so 1980-2012
 
 cor.mat=cbind(climate[,-2],sst=SST[1:33,5],ssb[,c(2:5)],trend1=tr2[,1],trend2=tr2[,2],biod[,2:3])
 cor.mat.scale=apply(cor.mat,2,scale)
@@ -261,7 +260,7 @@ yrs=seq(1981,2013)
 # }
 # dev.off()
 
-dens=read.csv('DensityforDFA.csv', header=T)
+dens=read.csv('../data/DensityforDFA.csv', header=T)
 densc=dens
 densc[c(4,6,32),]=NA ##creates NA in years where there was no data. Did this because the interpolated values from the index standardization were weird.
 
