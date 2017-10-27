@@ -1,6 +1,9 @@
 d <- readRDS("correlation-matrix.rds")
 
 library(tidyverse)
+library(manipulate)
+library(psychometric)
+library(ggsidekick)
 predictors <- select(d, ENSO:V5)
 responses <- select(d, trend1:IchSW)
 
@@ -48,24 +51,32 @@ cc <- function(x, y, k, trans = I, pyper = pyper, alpha = 0.9, method = method, 
   })
 }
 
-library(manipulate)
-manipulate({
+
+#manipulate({
+  k=11
+  pyper=TRUE
+  method="pearson"
+  
   ccnames <- expand.grid(x = names(predictors), y = names(responses), k = k)
   out <- plyr::mdply(ccnames, cc, trans = I, pyper = pyper, method = method)
   
   out <- out %>% mutate(sig = ifelse(u < 0, "low", ifelse(l > 0, "high", "none")))
   
-  ggplot(out, aes(i+k+1979, r)) + 
+  ggplot(out, aes(i+k/2+1979, r)) + 
     geom_line() +
+    #geom_ribbon(aes(x=c(1984,1994),ymin =-1 , ymax =1 ), alpha = 0.2, inherit.aes=F) +
     geom_ribbon(aes(ymin = l, ymax = u), alpha = 0.2) +
     facet_grid(x~y) +
     geom_hline(yintercept = 0, lty = 2, colour = "grey50") +
+    #geom_vline(xintercept=c(1994.5,2002.5), lty=2, colour="green")+
     geom_point(data = filter(out, sig != "none"), aes(color = sig)) +
-    theme_light() + guides(colour = FALSE) +
-    labs(x="Year", y="Correlation Coefficient")
+    #theme_light() + 
+    guides(colour = FALSE) +
+    labs(x="Year", y="Correlation Coefficient") +
+    theme_sleek()
   #theme(panel.grid.major = element_blank(),
      # panel.grid.minor = element_blank())
-}, k = slider(4, 33, 11), method = picker("pearson", "spearman", "kendall"), pyper = picker(TRUE, FALSE))
+#}, k = slider(4, 33, 11), method = picker("pearson", "spearman", "kendall"), pyper = picker(TRUE, FALSE))
 
 
 predictors %>% 
