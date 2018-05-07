@@ -1,41 +1,41 @@
 spp,LongName,ShortName
-Gadus.chalcogrammus,walleye pollock,pollock
-Bathymaster.spp.,ronquils,ronquils
-Hippoglossoides.elassodon,flathead sole,flathead
-Ammodytes.personatus,Pacific sand lance,sand lance
-Sebastes.spp.,rockfish,rockfish
-Gadus.macrocephalus,Pacific cod,pcod
-Lepidopsetta.polyxystra,northern rock sole,nrock
-Platichthys.stellatus,starry flounder,starry
-Icelinus.spp.,sculpins A,sculpA
-Stenobrachius.leucopsarus,northern lampfish,nlamp
-Lepidopsetta.bilineata,southern rock sole,srock
-Atheresthes.stomias,arrowtooth flounder,arrowtooth
-Anoplarchus.spp.,blennies,blennies
-Isopsetta.isolepis,butter sole,butter
-Bathyagonus.alascanus,gray starsnout poacher,poacher
-Cryptacanthodes.aleutensis,dwarf wrymouth,wrymouth
-Poroclinus.rothrocki,whitebarred prickleback,wprickle
-Hexagrammos.spp.,kelp greenling,greenling
-Lumpenus.maculatus,daubed shanny,shanny
-Glyptocephalus.zachirus,rex sole,rex
-Liparis.fucensis,slipskin snailfish,snailfish
-Hippoglossus.stenolepis,Pacific halibut,halibut
-Microstomus.pacificus,dover sole,dover
-Radulinus.spp.,sculpins B,sculpB
-Lumpenella.longirostris,longsnout prickleback,lprickle
-Pleuronectes.quadrituberculatus,Alaska plaice,plaice
-Clupea.pallasi,Pacific herring,herring
-Zaprora.silenus,prowfish,prow
-Pholis.spp.,gunnels,gunnels
-Leuroglossus.schmidti,northern smoothtongue,smooth
-Ophiodon.elongatus,lingcod,lingcod
-Mallotus.villosus,capelin,capelin
-Myoxocephalus.spp.,deepwater sculpin,dsculp
-Bathyagonus.infraspinatus,spinycheek snarsnout,starsnout
-Ruscarius.meanyi,Puget Sound sculpin,Pssculp
-Protomyctophum.thompsoni,bigeye lanternfish,lantern
-Bathylagus.pacificus,slender blacksmelt,blacksmelt
-Triglops.spp.,sculpins C,sculpC
-Podothecus.acipenserinus,sturgeon poacher,stpoach
-Lumpenus.sagitta,snake prickleback,sprickle
+Gadus.chalcogrammus,walleye pollock,Ga.ch
+Bathymaster.spp.,ronquils,Ba.sp
+Hippoglossoides.elassodon,flathead sole,Hi.el
+Ammodytes.personatus,Pacific sand lance,Am.pe
+Sebastes.spp.,rockfish,Se.sp
+Gadus.macrocephalus,Pacific cod,Ga.ma
+Lepidopsetta.polyxystra,northern rock sole,Le.po
+Platichthys.stellatus,starry flounder,Pl.st
+Icelinus.spp.,sculpins A,Ic.sp
+Stenobrachius.leucopsarus,northern lampfish,St.le
+Lepidopsetta.bilineata,southern rock sole,Le.bi
+Atheresthes.stomias,arrowtooth flounder,At.st
+Anoplarchus.spp.,blennies,An.sp
+Isopsetta.isolepis,butter sole,Is.is
+Bathyagonus.alascanus,gray starsnout poacher,Ba.al
+Cryptacanthodes.aleutensis,dwarf wrymouth,Cr.al
+Poroclinus.rothrocki,whitebarred prickleback,Po.ro
+Hexagrammos.spp.,kelp greenling,He.sp
+Lumpenus.maculatus,daubed shanny,Lu.ma
+Glyptocephalus.zachirus,rex sole,Gl.za
+Liparis.fucensis,slipskin snailfish,Li.fu
+Hippoglossus.stenolepis,Pacific halibut,Hi.st
+Microstomus.pacificus,dover sole,Mi.pa
+Radulinus.spp.,sculpins B,Ra.sp
+Lumpenella.longirostris,longsnout prickleback,Lu.lo
+Pleuronectes.quadrituberculatus,Alaska plaice,Pl.qu
+Clupea.pallasi,Pacific herring,Cl.pa
+Zaprora.silenus,prowfish,Za.si
+Pholis.spp.,gunnels,Ph.sp
+Leuroglossus.schmidti,northern smoothtongue,Le.sc
+Ophiodon.elongatus,lingcod,Op.el
+Mallotus.villosus,capelin,Ma.vi
+Myoxocephalus.spp.,deepwater sculpin,My.sp
+Bathyagonus.infraspinatus,spinycheek snarsnout,Ba.in
+Ruscarius.meanyi,Puget Sound sculpin,Ru.me
+Protomyctophum.thompsoni,bigeye lanternfish,Pr.th
+Bathylagus.pacificus,slender blacksmelt,Ba.pa
+Triglops.spp.,sculpins C,Tr.sp
+Podothecus.acipenserinus,sturgeon poacher,Po.ac
+Lumpenus.sagitta,snake prickleback,Lu.sa
