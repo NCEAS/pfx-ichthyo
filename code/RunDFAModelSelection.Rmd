@@ -16,6 +16,7 @@ library(ggrepel)
 library(rioja)
 library(ggsidekick)
 library(factoextra)
+library(tidyr)
 #setwd('/users/kristinmarshall/dropbox/Ichthyo_IndexStandardization/')
 
 getwd()
@@ -390,7 +391,7 @@ Now, we can plot the rotated trends. The trend plot is **Figure 3**.
 ###################################################
 ### plotfacloadings
 ##################################################
-sp.names=read.csv("../data/Abund.names.csv", header=T)
+sp.names=read.csv("../data/Abund.names.traits.csv", header=T)
 
 # minZ = 0.2
 # ylims = c(-1.1*max(abs(Z.rot)), 1.1*max(abs(Z.rot)))
@@ -561,7 +562,7 @@ set.seed(30)
 #lab.Zroty=Z.rot[-no.plot,2] * 1.1
 #Z.rot.plot=NA
 Z.dat=data.frame(cbind(sp.names, Z.rot,final$cluster))
-names(Z.dat)=c('Species', 'LongName','ShortName','Trend1','Trend2','Cluster')
+names(Z.dat)=c('Species', 'LongName','ShortName','Habitat','Guild','Spawn.time','Egg.Ecology','Larval.Duration.wks','Dur.short','Trend1','Trend2','Cluster')
 
 Z.dat$meanAbund=rowMeans(dat.abund, na.rm=T)
 
@@ -596,6 +597,15 @@ ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
   scale_colour_brewer(type="qual", palette=3)+
   coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
 #dev.off()
+
+ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
+ geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
+ geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
+ geom_point(aes(color=Cluster)) +
+ geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Spawn.time), family="Helvetica") +
+  theme_sleek() +
+  scale_colour_brewer(type="qual", palette=3)+
+  coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
 
 
 
