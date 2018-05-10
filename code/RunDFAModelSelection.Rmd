@@ -16,7 +16,7 @@ library(ggrepel)
 library(rioja)
 library(ggsidekick)
 library(factoextra)
-library(tidyr)
+library(tidyverse)
 #setwd('/users/kristinmarshall/dropbox/Ichthyo_IndexStandardization/')
 
 getwd()
@@ -460,6 +460,7 @@ load=cbind(spp,Trend1=Z.rot[,1],Trend2=Z.rot[,2])
 ts.trends=read.csv("../data/Abund.trends2.csv",header=T)[,2:3]
 Z.rot=read.csv("../data/Abund.loadings.csv", header=T)[,2:3]
 
+
 #par(mfrow=c(1,2))
 #plot(seq(1981,2013),trends.rot, type='l')
 #plot(seq(1981,2013),ts.trends[,1], type='l')
@@ -472,70 +473,94 @@ Now, let's look at how the individual species group together, based on their loa
 ```{r, include=F, eval=F}
 ##cluster diagrams of loadings
 
-di <- dist(Z.rot[,1:2], method="euclidean",diag = TRUE, upper = TRUE)
+df=as.data.frame(Z.rot[,1:2])
+row.names(df)=sp.names$LongName
+
+di <- dist(df, method="euclidean",diag = TRUE, upper = TRUE)
 
 
-
+##hierachical clustering
 x2=hclust(di)
 plot(x2)
 #bstick(x2)
 
-
 # function to compute total within-cluster sum of square 
-wss <- function(k) {
-  kmeans(di, k, nstart = 10 )$tot.withinss
-}
+#wss <- function(k) {
+ # h1=hclust(di, method="complete")
+#  cutree(h1,k)
+#}
 
 # Compute and plot wss for k = 1 to k = 15
-k.values <- 1:15
+#k.values <- 1:15
 
 # extract wss for 2-15 clusters
-wss_values <- map_dbl(k.values, wss)
+#wss_values <- map_dbl(k.values, wss)
 
-plot(k.values, wss_values,
-       type="b", pch = 19, frame = FALSE, 
-       xlab="Number of clusters K",
-       ylab="Total within-clusters sum of squares")
+#plot(k.values, wss_values,
+ #      type="b", pch = 19, frame = FALSE, 
+  #     xlab="Number of clusters K",
+   #    ylab="Total within-clusters sum of squares")
 
+fviz_nbclust(df, FUN = hcut, method = "wss")
+fviz_nbclust(df, FUN = hcut, method = "silhouette")
+gap_stat <- clusGap(df, FUN = hcut, nstart = 25,
+                    K.max = 10, B = 50)
 
-avg_sil <- function(k) {
-  km.res <- kmeans(di, centers = k, nstart = 25)
-  ss <- silhouette(km.res$cluster, dist(di))
-  mean(ss[, 3])
-}
-
-# Compute and plot wss for k = 2 to k = 15
-k.values <- 2:15
-
-# extract avg silhouette for 2-15 clusters
-avg_sil_values <- map_dbl(k.values, avg_sil)
-
-plot(k.values, avg_sil_values,
-       type = "b", pch = 19, frame = FALSE, 
-       xlab = "Number of clusters K",
-       ylab = "Average Silhouettes")
-
-final<-kmeans(di, 5, nstart=25)
-
-
-#fviz_nbclust(di, FUN = hcut, method = "wss")
-
-
-
-gap_stat <- clusGap(Z.rot[,1:2], FUN = kmeans, nstart = 25,
-                    K.max = 15, B = 50)
-# Print the result
 print(gap_stat, method = "firstmax")
 fviz_gap_stat(gap_stat)
 
-x=hclust(di, method = "complete", members=NULL)
-plot(x)
-y=rect.hclust(x, k=5)
+
+
+
+#kmeans clustering
+fviz_nbclust(df, FUN = kmeans, method = "wss")
+fviz_nbclust(df, FUN = kmeans, method = "silhouette")
+gap_stat <- clusGap(df, FUN = kmeans, nstart = 25,
+                    K.max = 10, B = 50)
+
+print(gap_stat, method = "firstmax")
+fviz_gap_stat(gap_stat)
+
+
+
+# avg_sil <- function(k) {
+#   km.res <- kmeans(di, centers = k, nstart = 25)
+#   ss <- silhouette(km.res$cluster, dist(di))
+#   mean(ss[, 3])
+# }
+# 
+# # Compute and plot wss for k = 2 to k = 15
+# k.values <- 2:15
+# 
+# # extract avg silhouette for 2-15 clusters
+# avg_sil_values <- map_dbl(k.values, avg_sil)
+# 
+# plot(k.values, avg_sil_values,
+#        type = "b", pch = 19, frame = FALSE, 
+#        xlab = "Number of clusters K",
+#        ylab = "Average Silhouettes")
+
+final<-kmeans(di, 4, nstart=25)
+
+
+
+
+
+
+
+# Print the result
+
+
+# x=hclust(di, method = "complete", members=NULL)
+# plot(x)
+y=rect.hclust(x, k=4)
+h.cluster=cutree(x, k=4)
+
 
 ## S3 method for class 'hclust'
 #pdf("AbundClust2trend.pdf")
-par(mfrow=c(1,1),mar=c(1,4,0,0), oma=c(0,0,0,0))
- plot(x2, labels = sp.names$LongName, hang = 0.1,
+# par(mfrow=c(1,1),mar=c(1,4,0,0), oma=c(0,0,0,0))
+ # plot(x2, labels = sp.names$LongName, hang = 0.1,
 #      axes = TRUE, frame.plot = FALSE, ann = TRUE,
 #      main = "",
 #      sub = NULL, xlab = "", ylab = "Height")
@@ -561,8 +586,8 @@ set.seed(30)
 
 #lab.Zroty=Z.rot[-no.plot,2] * 1.1
 #Z.rot.plot=NA
-Z.dat=data.frame(cbind(sp.names, Z.rot,final$cluster))
-names(Z.dat)=c('Species', 'LongName','ShortName','Habitat','Guild','Spawn.time','Egg.Ecology','Larval.Duration.wks','Dur.short','Trend1','Trend2','Cluster')
+Z.dat=data.frame(cbind(sp.names, Z.rot,final$cluster), h.cluster)
+names(Z.dat)=c('Species', 'LongName','ShortName','Habitat','Guild','Spawn.time','Egg.Ecology','Larval.Duration.wks','Dur.short','Trend1','Trend2','K.cluster', "H.cluster")
 
 Z.dat$meanAbund=rowMeans(dat.abund, na.rm=T)
 
@@ -583,7 +608,8 @@ Z.rot.plot$Group[abs(Z.rot.plot$Trend1)<.2 & Z.rot.plot$Trend2>.2]=3
 Z.rot.plot$Group[abs(Z.rot.plot$Trend1)<.2 & Z.rot.plot$Trend2<(-.2)]=4
 Z.rot.plot$Group=factor(Z.rot.plot$Group, labels=c('Strong Positive Tr 1','Strong Negative Tr 1.','Strong Positive Tr 2','Strong Neg Tr 2.','Others'))
 
-Z.rot.plot$Cluster=factor(Z.rot.plot$Cluster)
+Z.rot.plot$H.cluster=factor(Z.rot.plot$H.cluster)
+Z.rot.plot$K.cluster=factor(Z.rot.plot$K.cluster)
 
 
 
@@ -591,12 +617,21 @@ Z.rot.plot$Cluster=factor(Z.rot.plot$Cluster)
 ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
  geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
  geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
- geom_point(aes(color=Cluster)) +
+ geom_point(aes(color=H.cluster)) +
  geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=ShortName), family="Helvetica") +
   theme_sleek() +
   scale_colour_brewer(type="qual", palette=3)+
   coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
 #dev.off()
+
+ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
+ geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
+ geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
+ geom_point(aes(color=H.cluster,shape=K.cluster)) +
+ geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Species), family="Helvetica") +
+  theme_sleek() +
+  scale_colour_brewer(type="qual", palette=3)+
+  coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
 
 ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
  geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
