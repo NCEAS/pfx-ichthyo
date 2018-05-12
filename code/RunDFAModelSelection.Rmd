@@ -17,6 +17,7 @@ library(rioja)
 library(ggsidekick)
 library(factoextra)
 library(tidyverse)
+library(cluster)
 #setwd('/users/kristinmarshall/dropbox/Ichthyo_IndexStandardization/')
 
 getwd()
@@ -459,7 +460,7 @@ load=cbind(spp,Trend1=Z.rot[,1],Trend2=Z.rot[,2])
 
 ts.trends=read.csv("../data/Abund.trends2.csv",header=T)[,2:3]
 Z.rot=read.csv("../data/Abund.loadings.csv", header=T)[,2:3]
-
+sp.names=read.csv("../data/Abund.names.traits.csv", header=T)
 
 #par(mfrow=c(1,2))
 #plot(seq(1981,2013),trends.rot, type='l')
@@ -587,9 +588,10 @@ set.seed(30)
 #lab.Zroty=Z.rot[-no.plot,2] * 1.1
 #Z.rot.plot=NA
 Z.dat=data.frame(cbind(sp.names, Z.rot,final$cluster), h.cluster)
-names(Z.dat)=c('Species', 'LongName','ShortName','Habitat','Guild','Spawn.time','Egg.Ecology','Larval.Duration.wks','Dur.short','Trend1','Trend2','K.cluster', "H.cluster")
+names(Z.dat)=c('Species', 'LongName','ShortName','Habitat','Hab.short','shelf.slope','Guild','Spawn.time','Spawn.short','Egg.Ecology','Larval.Duration.wks','Dur.short', 'Lat','Trend1','Trend2','K.cluster', "H.cluster")
 
 Z.dat$meanAbund=rowMeans(dat.abund, na.rm=T)
+
 
 
 #row.names(Z.rot)=sp.names$spp
@@ -601,47 +603,102 @@ Z.rot.plot=Z.dat
 #Z.rot.plot$Trend2=as.numeric(Z.rot.plot$Trend2)
 
 
-Z.rot.plot$Group=5
-Z.rot.plot$Group[Z.rot.plot$Trend1>.2 & abs(Z.rot.plot$Trend2)<.2]=1
-Z.rot.plot$Group[Z.rot.plot$Trend1<(-.2) & abs(Z.rot.plot$Trend2)<.2]=2
-Z.rot.plot$Group[abs(Z.rot.plot$Trend1)<.2 & Z.rot.plot$Trend2>.2]=3
-Z.rot.plot$Group[abs(Z.rot.plot$Trend1)<.2 & Z.rot.plot$Trend2<(-.2)]=4
-Z.rot.plot$Group=factor(Z.rot.plot$Group, labels=c('Strong Positive Tr 1','Strong Negative Tr 1.','Strong Positive Tr 2','Strong Neg Tr 2.','Others'))
+# Z.rot.plot$Group=5
+# Z.rot.plot$Group[Z.rot.plot$Trend1>.2 & abs(Z.rot.plot$Trend2)<.2]=1
+# Z.rot.plot$Group[Z.rot.plot$Trend1<(-.2) & abs(Z.rot.plot$Trend2)<.2]=2
+# Z.rot.plot$Group[abs(Z.rot.plot$Trend1)<.2 & Z.rot.plot$Trend2>.2]=3
+# Z.rot.plot$Group[abs(Z.rot.plot$Trend1)<.2 & Z.rot.plot$Trend2<(-.2)]=4
+# Z.rot.plot$Group=factor(Z.rot.plot$Group, labels=c('Strong Positive Tr 1','Strong Negative Tr 1.','Strong Positive Tr 2','Strong Neg Tr 2.','Others'))
 
 Z.rot.plot$H.cluster=factor(Z.rot.plot$H.cluster)
 Z.rot.plot$K.cluster=factor(Z.rot.plot$K.cluster)
 
 
-
+##plot by habitat
 #pdf("LoadingsPlotv2.pdf", width=6, height=6)
 ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
  geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
  geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
  geom_point(aes(color=H.cluster)) +
- geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=ShortName), family="Helvetica") +
+ geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Hab.short), family="Helvetica") +
   theme_sleek() +
   scale_colour_brewer(type="qual", palette=3)+
   coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
 #dev.off()
 
+
+##plot by shelf/slope -- cluster 3 is mostly slope
+#pdf("LoadingsPlotv2.pdf", width=6, height=6)
 ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
  geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
  geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
- geom_point(aes(color=H.cluster,shape=K.cluster)) +
- geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Species), family="Helvetica") +
+ geom_point(aes(color=H.cluster)) +
+ geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=shelf.slope), family="Helvetica") +
+  theme_sleek() +
+  scale_colour_brewer(type="qual", palette=3)+
+  coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
+#dev.off()
+
+#plot by spawn timing
+ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
+ geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
+ geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
+ geom_point(aes(color=H.cluster)) +
+ geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Spawn.short), family="Helvetica") +
   theme_sleek() +
   scale_colour_brewer(type="qual", palette=3)+
   coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
 
+#plot by larval duration
 ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
  geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
  geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
- geom_point(aes(color=Cluster)) +
- geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Spawn.time), family="Helvetica") +
+ geom_point(aes(color=H.cluster)) +
+ geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Dur.short), family="Helvetica") +
   theme_sleek() +
   scale_colour_brewer(type="qual", palette=3)+
   coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
 
+#plot by latitude
+ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
+ geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
+ geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
+ geom_point(aes(color=H.cluster)) +
+ geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Lat), family="Helvetica") +
+  theme_sleek() +
+  scale_colour_brewer(type="qual", palette=3)+
+  coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
+
+
+
+
+ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
+ #geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
+ #geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
+ geom_point(aes(color=H.cluster)) +
+ geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=ShortName), family="Helvetica") +
+  theme_sleek() +
+  scale_colour_brewer(type="qual", palette=2)+
+  coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.6))
+
+# ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
+#  geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
+#  geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
+#  geom_point(aes(color=H.cluster,shape=K.cluster)) +
+#  geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=ShortName), family="Helvetica") +
+#   theme_sleek() +
+#   scale_colour_brewer(type="qual", palette=3)+
+#   coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
+# 
+# ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
+#  geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
+#  geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
+#  geom_point(aes(color=H.cluster)) +
+#  geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Spawn.time), family="Helvetica") +
+#   theme_sleek() +
+#   scale_colour_brewer(type="qual", palette=3)+
+#   coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
+# 
 
 
 ```
