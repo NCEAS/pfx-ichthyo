@@ -11,10 +11,12 @@ This document plots the DFA trends and loadings for the best-fit model, and expl
 Here are the Species Richness and Shannon Diversity trends plotted over time.
 
 ```{r, include=F}
-require(biwavelet)
+#require(biwavelet)
 library(vegan)
 library(reshape)
 library(ggplot2)
+library(ggrepel)
+library(ggsidekick)
 ```
 ```{r, echo=F}
 getwd()
@@ -51,6 +53,15 @@ Calculate the proportion of total larval abundance made up by pollock in each ye
 ```{r}
 prpoll=SWabund[,1]/rowSums(SWabund)
 prpoll[c(4,6,32)]=NA
+
+polSW.dat=as.data.frame(cbind(prpoll,IchSW, year))
+ggplot(polSW.dat, aes(prpoll, IchSW)) +
+ #geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
+ #geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
+ geom_point() +
+ geom_text_repel(aes(prpoll, IchSW, label=year), family="Helvetica") +
+  theme_sleek()
+
 ```
 
 ##Exploring metrics of synchrony
