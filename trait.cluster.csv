@@ -1,0 +1,41 @@
+Species,ShortName,Adult Habitat,Adult bathymetric,Spawn timing,Egg Ecology,Larval duration (months),Range,Cluster,meanAbund
+Anoplarchus.spp.,An.sp,benthic,nearshore,spring,demersal,3,northern,1,4.907784013
+Icelinus.spp.,Ic.sp,benthic,nearshore,spring,demersal,NA,northern,1,4.456807432
+Platichthys.stellatus,Pl.st,benthic,slope,late spring,pelagic,2,southern,1,4.194899253
+Stenobrachius.leucopsarus,St.le,pelagic,slope,winter,pelagic,8,both,1,3.22905442
+Atheresthes.stomias,At.st,benthic,slope,winter,pelagic,5,both,1,2.76340264
+Microstomus.pacificus,Mi.pa,benthic,slope,spring,pelagic,8,southern,1,2.161982915
+Bathyagonus.alascanus,Ba.al,benthic,shelf,spring,demersal,3,both,1,1.587182736
+Leuroglossus.schmidti,Le.sc,pelagic,slope,winter,pelagic,3,northern,1,0.539592194
+Protomyctophum.thompsoni,Pr.th,pelagic,slope,winter,pelagic,8,both,1,0.308562294
+Bathylagus.pacificus,Ba.pa,pelagic,slope,winter,pelagic,3,both,1,0.262133232
+Zaprora.silenus,Za.si,benthic,slope,spring,demersal,4,northern,1,0.205904926
+Bathymaster.spp.,Ba.sp,benthic,shelf,late spring,demersal,5,both,2,51.8835148
+Hippoglossoides.elassodon,Hi.el,benthic,slope,early spring,pelagic,4,northern,2,39.18788079
+Glyptocephalus.zachirus,Gl.za,benthic,slope,spring,pelagic,8,southern,2,0.875071801
+Clupea.pallasi,Cl.pa,pelagic,shelf,late spring,demersal,3,southern,2,0.343486346
+Lumpenella.longirostris,Lu.lo,benthic,shelf,spring,demersal,3,northern,2,0.305801338
+Bathyagonus.infraspinatus,Ba.in,benthic,shelf,spring,demersal,3,both,2,0.100758384
+Sebastes.spp.,Se.sp,benthic,slope,spring,live bearing,5,both,3,13.32480145
+Isopsetta.isolepis,Is.is,benthic,shelf,early spring,pelagic,2,southern,3,2.478120281
+Lepidopsetta.bilineata,Le.bi,benthic,shelf,late spring,demersal,4,southern,3,1.806979059
+Cryptacanthodes.aleutensis,Cr.al,benthic,shelf,spring,demersal,3,both,3,1.358404246
+Poroclinus.rothrocki,Po.ro,benthic,shelf,spring,demersal,4,both,3,0.652672947
+Radulinus.spp.,Ra.sp,benthic,shelf,spring,demersal,NA,southern,3,0.553266528
+Liparis.fucensis,Li.fu,benthic,shelf,late spring,demersal,2,both,3,0.550947097
+Ruscarius.meanyi,Ru.me,benthic,shelf,spring,demersal,3,southern,3,0.275375215
+Ophiodon.elongatus,Op.el,benthic,shelf,late winter,demersal,3,southern,3,0.216232445
+Gadus.chalcogrammus,Ga.ch,benthic,shelf,early spring,pelagic,4,both,4,413.3116568
+Ammodytes.personatus,Am.pe,pelagic,shelf,late winter,demersal,8,both,4,61.65408909
+Gadus.macrocephalus,Ga.ma,benthic,shelf,early spring,demersal,3,northern,4,21.79741112
+Lepidopsetta.polyxystra,Le.po,benthic,shelf,early spring,demersal,5,northern,4,6.309113379
+Lumpenus.maculatus,Lu.ma,benthic,nearshore,spring,demersal,5,northern,4,0.99696104
+Hexagrammos.spp.,He.sp,benthic,nearshore,winter,demersal,8,both,4,0.981001491
+Hippoglossus.stenolepis,Hi.st,benthic,slope,winter,demersal,5,northern,4,0.656726618
+Pleuronectes.quadrituberculatus,Pl.qu,benthic,shelf,late spring,pelagic,2,northern,4,0.531952273
+Mallotus.villosus,Ma.vi,pelagic,nearshore,summer,demersal,8,northern,4,0.390915804
+Pholis.spp.,Ph.sp,benthic,nearshore,late winter,demersal,3,both,4,0.255957178
+Myoxocephalus.spp.,My.sp,benthic,shelf,spring,demersal,5,northern,4,0.157695636
+Podothecus.acipenserinus,Po.ac,benthic,shelf,spring,demersal,3,both,4,0.069755083
+Triglops.spp.,Tr.sp,benthic,shelf,spring,demersal,3,both,4,0.057471966
+Lumpenus.sagitta,Lu.sa,benthic,shelf,late winter,demersal,3,n,4,0.051005292

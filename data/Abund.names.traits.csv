@@ -1,41 +1,41 @@
 spp,LongName,ShortName,Habitat,Hab.short,shelf.slope,Guild,Spawn.time,Spawn.short,Egg.Ecology,Larval.Duration.wks,Dur.short,Lat
-Gadus.chalcogrammus,walleye pollock,Ga.ch,epibenthic.shelf,benthic,shelf,pelagic forage,early spring,early spring,pelagic,16-20,4,u
-Bathymaster.spp.,ronquils,Ba.sp,demersal.shelf,benthic,shelf,benthic forage,late spring- summer,late spring,demersal,20-25,5,u
-Hippoglossoides.elassodon,flathead sole,Hi.el,benthic.shelf.upper.slope,benthic,slope,benthic forage3,early spring,early spring,pelagic,15-18,4,n
-Ammodytes.personatus,Pacific sand lance,Am.pe,pelagic.nearshore.shelf,pelagic,shelf,pelagic forage,late winter-early summer,late winter,demersal,30+,8,u
-Sebastes.spp.,rockfish,Se.sp,benthic.slope,benthic,slope,pelagic forage,spring-early summer,spring,live bearing,20-24,5,u
-Gadus.macrocephalus,Pacific cod,Ga.ma,epibenthic.shelf,benthic,shelf,apex predator,early spring,early spring,demersal,12-14,3,n
-Lepidopsetta.polyxystra,northern rock sole,Le.po,benthic.shelf,benthic,shelf,benthic forage,early spring,early spring,demersal,18-20,5,n
-Platichthys.stellatus,starry flounder,Pl.st,benthic.shelf.upper.slope,benthic,slope,pelagic forage,"late spring, summer",late spring,pelagic,8-10,2,s
-Icelinus.spp.,sculpins A,Ic.sp,demersal.nearshore.shelf,benthic,nearshore,benthic forage,spring,spring,demersal,NA,NA,n
-Stenobrachius.leucopsarus,northern lampfish,St.le,pelagic.slope,pelagic,slope,pelagic forage,winter,winter,pelagic,30+,8,u
-Lepidopsetta.bilineata,southern rock sole,Le.bi,benthic.shelf,benthic,shelf,benthic forage,"late spring, summer",late spring,demersal,16-18,4,s
-Atheresthes.stomias,arrowtooth flounder,At.st,benthic.slope,benthic,slope,apex predator,winter,winter,pelagic,20-24,5,u
-Anoplarchus.spp.,blennies,An.sp,demersal.nearshore.shelf,benthic,nearshore,benthic forage,spring-early summer,spring,demersal,12-14,3,n
-Isopsetta.isolepis,butter sole,Is.is,benthic.shelf,benthic,shelf,benthic forage,early spring,early spring,pelagic,8-10,2,s
-Bathyagonus.alascanus,gray starsnout poacher,Ba.al,demersal.shelf,benthic,shelf,benthic forage,spring,spring,demersal,12-14,3,u
-Cryptacanthodes.aleutensis,dwarf wrymouth,Cr.al,demersal.shelf,benthic,shelf,benthic forage,spring-summer,spring,demersal,12-14,3,u
-Poroclinus.rothrocki,whitebarred prickleback,Po.ro,demersal.shelf,benthic,shelf,benthic forage,spring,spring,demersal,15-18,4,u
-Hexagrammos.spp.,kelp greenling,He.sp,demersal.nearshore.shelf,benthic,nearshore,benthic forage,winter-early spring,winter,demersal,30+,8,u
-Lumpenus.maculatus,daubed shanny,Lu.ma,demersal.nearshore.shelf,benthic,nearshore,benthic forage,spring,spring,demersal,20-24,5,n
-Glyptocephalus.zachirus,rex sole,Gl.za,benthic.outer.shelf.slope,benthic,slope,benthic forage,spring,spring,pelagic,30+,8,s
-Liparis.fucensis,slipskin snailfish,Li.fu,benthic.shelf,benthic,shelf,benthic forage,late spring,late spring,demersal,8-10,2,u
-Hippoglossus.stenolepis,Pacific halibut,Hi.st,benthic.slope,benthic,slope,apex predator,winter,winter,demersal,20-24,5,n
-Microstomus.pacificus,dover sole,Mi.pa,benthic.slope,benthic,slope,benthic forage,spring-early summer,spring,pelagic,30+,8,s
-Radulinus.spp.,sculpins B,Ra.sp,demersal.shelf,benthic,shelf,benthic forage,spring,spring,demersal,NA,NA,s
-Lumpenella.longirostris,longsnout prickleback,Lu.lo,benthic.shelf,benthic,shelf,benthic forage,spring,spring,demersal,12-14,3,n
-Pleuronectes.quadrituberculatus,Alaska plaice,Pl.qu,benthic.shelf,benthic,shelf,benthic forage,late spring-summer,late spring,pelagic,8-10,2,n
-Clupea.pallasi,Pacific herring,Cl.pa,pelagic.shelf,pelagic,shelf,pelagic forage,late spring,late spring,demersal,12-14,3,s
-Zaprora.silenus,prowfish,Za.si,demersal.slope,benthic,slope,benthic forage,spring,spring,demersal,16-20,4,n
-Pholis.spp.,gunnels,Ph.sp,demersal.nearshore.shelf,benthic,nearshore,benthic forage,late winter-early summer,late winter,demersal,12-14,3,u
-Leuroglossus.schmidti,northern smoothtongue,Le.sc,pelagic.slope,pelagic,slope,pelagic forage,winter-early spring,winter,pelagic,12-14,3,n
-Ophiodon.elongatus,lingcod,Op.el,demersal.shelf,benthic,shelf,apex predator,late winter-early summer,late winter,demersal,12-14,3,s
-Mallotus.villosus,capelin,Ma.vi,pelagic.nearshore.shelf,pelagic,nearshore,pelagic forage,summer-fall,summer,demersal,30+,8,n
-Myoxocephalus.spp.,deepwater sculpin,My.sp,demersal.shelf,benthic,shelf,apex predator,spring,spring,demersal,20-24,5,n
-Bathyagonus.infraspinatus,spinycheek snarsnout,Ba.in,demersal.shelf,benthic,shelf,benthic forage,spring,spring,demersal,12-14,3,u
-Ruscarius.meanyi,Puget Sound sculpin,Ru.me,demersal.shelf,benthic,shelf,benthic forage,spring,spring,demersal,12-14,3,s
-Protomyctophum.thompsoni,bigeye lanternfish,Pr.th,pelagic.slope,pelagic,slope,pelagic forage,winter,winter,pelagic,30+,8,u
-Bathylagus.pacificus,slender blacksmelt,Ba.pa,pelagic.slope,pelagic,slope,pelagic forage,winter-early spring,winter,pelagic,12-14,3,u
-Triglops.spp.,sculpins C,Tr.sp,demersal.shelf,benthic,shelf,benthic forage,spring,spring,demersal,12-14,3,u
-Podothecus.acipenserinus,sturgeon poacher,Po.ac,benthic.shelf,benthic,shelf,benthic forage,spring,spring,demersal,12-14,3,u
-Lumpenus.sagitta,snake prickleback,Lu.sa,benthic.shelf,benthic,shelf,benthic forage,late winter-spring,late winter,demersal,12-14,3,n
+Gadus.chalcogrammus,walleye pollock,Ga.ch,epibenthic.shelf,benthic,shelf,pelagic forage,early spring,early spring,pelagic,16-20,4,ubiquitous
+Bathymaster.spp.,ronquils,Ba.sp,demersal.shelf,benthic,shelf,benthic forage,late spring- summer,late spring,demersal,20-25,5,ubiquitous
+Hippoglossoides.elassodon,flathead sole,Hi.el,benthic.shelf.upper.slope,benthic,slope,benthic forage3,early spring,early spring,pelagic,15-18,4,north
+Ammodytes.personatus,Pacific sand lance,Am.pe,pelagic.nearshore.shelf,pelagic,shelf,pelagic forage,late winter-early summer,late winter,demersal,30+,8,ubiquitous
+Sebastes.spp.,rockfish,Se.sp,benthic.slope,benthic,slope,pelagic forage,spring-early summer,spring,live bearing,20-24,5,ubiquitous
+Gadus.macrocephalus,Pacific cod,Ga.ma,epibenthic.shelf,benthic,shelf,apex predator,early spring,early spring,demersal,14-Dec,3,north
+Lepidopsetta.polyxystra,northern rock sole,Le.po,benthic.shelf,benthic,shelf,benthic forage,early spring,early spring,demersal,18-20,5,north
+Platichthys.stellatus,starry flounder,Pl.st,benthic.shelf.upper.slope,benthic,slope,pelagic forage,"late spring, summer",late spring,pelagic,10-Aug,2,south
+Icelinus.spp.,sculpins A,Ic.sp,demersal.nearshore.shelf,benthic,nearshore,benthic forage,spring,spring,demersal,NA,NA,north
+Stenobrachius.leucopsarus,northern lampfish,St.le,pelagic.slope,pelagic,slope,pelagic forage,winter,winter,pelagic,30+,8,ubiquitous
+Lepidopsetta.bilineata,southern rock sole,Le.bi,benthic.shelf,benthic,shelf,benthic forage,"late spring, summer",late spring,demersal,16-18,4,south
+Atheresthes.stomias,arrowtooth flounder,At.st,benthic.slope,benthic,slope,apex predator,winter,winter,pelagic,20-24,5,ubiquitous
+Anoplarchus.spp.,blennies,An.sp,demersal.nearshore.shelf,benthic,nearshore,benthic forage,spring-early summer,spring,demersal,14-Dec,3,north
+Isopsetta.isolepis,butter sole,Is.is,benthic.shelf,benthic,shelf,benthic forage,early spring,early spring,pelagic,10-Aug,2,south
+Bathyagonus.alascanus,gray starsnout poacher,Ba.al,demersal.shelf,benthic,shelf,benthic forage,spring,spring,demersal,14-Dec,3,ubiquitous
+Cryptacanthodes.aleutensis,dwarf wrymouth,Cr.al,demersal.shelf,benthic,shelf,benthic forage,spring-summer,spring,demersal,14-Dec,3,ubiquitous
+Poroclinus.rothrocki,whitebarred prickleback,Po.ro,demersal.shelf,benthic,shelf,benthic forage,spring,spring,demersal,15-18,4,ubiquitous
+Hexagrammos.spp.,kelp greenling,He.sp,demersal.nearshore.shelf,benthic,nearshore,benthic forage,winter-early spring,winter,demersal,30+,8,ubiquitous
+Lumpenus.maculatus,daubed shanny,Lu.ma,demersal.nearshore.shelf,benthic,nearshore,benthic forage,spring,spring,demersal,20-24,5,north
+Glyptocephalus.zachirus,rex sole,Gl.za,benthic.outer.shelf.slope,benthic,slope,benthic forage,spring,spring,pelagic,30+,8,south
+Liparis.fucensis,slipskin snailfish,Li.fu,benthic.shelf,benthic,shelf,benthic forage,late spring,late spring,demersal,10-Aug,2,ubiquitous
+Hippoglossus.stenolepis,Pacific halibut,Hi.st,benthic.slope,benthic,slope,apex predator,winter,winter,demersal,20-24,5,north
+Microstomus.pacificus,dover sole,Mi.pa,benthic.slope,benthic,slope,benthic forage,spring-early summer,spring,pelagic,30+,8,south
+Radulinus.spp.,sculpins B,Ra.sp,demersal.shelf,benthic,shelf,benthic forage,spring,spring,demersal,NA,NA,south
+Lumpenella.longirostris,longsnout prickleback,Lu.lo,benthic.shelf,benthic,shelf,benthic forage,spring,spring,demersal,14-Dec,3,north
+Pleuronectes.quadrituberculatus,Alaska plaice,Pl.qu,benthic.shelf,benthic,shelf,benthic forage,late spring-summer,late spring,pelagic,10-Aug,2,north
+Clupea.pallasi,Pacific herring,Cl.pa,pelagic.shelf,pelagic,shelf,pelagic forage,late spring,late spring,demersal,14-Dec,3,south
+Zaprora.silenus,prowfish,Za.si,demersal.slope,benthic,slope,benthic forage,spring,spring,demersal,16-20,4,north
+Pholis.spp.,gunnels,Ph.sp,demersal.nearshore.shelf,benthic,nearshore,benthic forage,late winter-early summer,late winter,demersal,14-Dec,3,ubiquitous
+Leuroglossus.schmidti,northern smoothtongue,Le.sc,pelagic.slope,pelagic,slope,pelagic forage,winter-early spring,winter,pelagic,14-Dec,3,north
+Ophiodon.elongatus,lingcod,Op.el,demersal.shelf,benthic,shelf,apex predator,late winter-early summer,late winter,demersal,14-Dec,3,south
+Mallotus.villosus,capelin,Ma.vi,pelagic.nearshore.shelf,pelagic,nearshore,pelagic forage,summer-fall,summer,demersal,30+,8,north
+Myoxocephalus.spp.,deepwater sculpin,My.sp,demersal.shelf,benthic,shelf,apex predator,spring,spring,demersal,20-24,5,north
+Bathyagonus.infraspinatus,spinycheek snarsnout,Ba.in,demersal.shelf,benthic,shelf,benthic forage,spring,spring,demersal,14-Dec,3,ubiquitous
+Ruscarius.meanyi,Puget Sound sculpin,Ru.me,demersal.shelf,benthic,shelf,benthic forage,spring,spring,demersal,14-Dec,3,south
+Protomyctophum.thompsoni,bigeye lanternfish,Pr.th,pelagic.slope,pelagic,slope,pelagic forage,winter,winter,pelagic,30+,8,ubiquitous
+Bathylagus.pacificus,slender blacksmelt,Ba.pa,pelagic.slope,pelagic,slope,pelagic forage,winter-early spring,winter,pelagic,14-Dec,3,ubiquitous
+Triglops.spp.,sculpins C,Tr.sp,demersal.shelf,benthic,shelf,benthic forage,spring,spring,demersal,14-Dec,3,ubiquitous
+Podothecus.acipenserinus,sturgeon poacher,Po.ac,benthic.shelf,benthic,shelf,benthic forage,spring,spring,demersal,14-Dec,3,ubiquitous
+Lumpenus.sagitta,snake prickleback,Lu.sa,benthic.shelf,benthic,shelf,benthic forage,late winter-spring,late winter,demersal,14-Dec,3,north

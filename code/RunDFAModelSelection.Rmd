@@ -4,6 +4,7 @@ author: "Kristin Marshall"
 date: "October 23, 2017"
 output:
   html_document: default
+  pdf_document: default
   word_document: default
 ---
 This document contains the code and plots for fitting a DFA to the ichthyo. abundance data. The sections below step through model fitting and model selection procedure, show how I fit various covariates, and plots DFA fits and common trends. I also included a cluster analysis that groups species based on their loadings values, and a plot that summarizes those results.  I call out in the text figures 2-4 included in the final manuscript. 
@@ -13,11 +14,12 @@ library(xtable)
 library(calibrate)
 library(ggplot2)
 library(ggrepel)
-library(rioja)
+#library(rioja)
 library(ggsidekick)
 library(factoextra)
 library(tidyverse)
 library(cluster)
+library(plyr)
 #setwd('/users/kristinmarshall/dropbox/Ichthyo_IndexStandardization/')
 
 getwd()
@@ -31,6 +33,7 @@ abund[4,]=NA
 abund[6,]=NA
 abund[32,]=NA
 
+abund.cut=abund
 aborder= order(colSums(abund.cut, na.rm=T), decreasing=T)
 
 abund.order=abund.cut[,aborder]
@@ -471,7 +474,7 @@ sp.names=read.csv("../data/Abund.names.traits.csv", header=T)
 
 Now, let's look at how the individual species group together, based on their loadings on the common trends.  We can then make a bivariate plot of the loadings, showing the four different groups using different colored text. This plot is **Figure 4**.  
 
-```{r, include=F, eval=F}
+```{r, include=F, eval=T}
 ##cluster diagrams of loadings
 
 df=as.data.frame(Z.rot[,1:2])
@@ -542,7 +545,7 @@ fviz_gap_stat(gap_stat)
 #        ylab = "Average Silhouettes")
 
 final<-kmeans(di, 4, nstart=25)
-
+print(final)
 
 
 
@@ -554,8 +557,8 @@ final<-kmeans(di, 4, nstart=25)
 
 # x=hclust(di, method = "complete", members=NULL)
 # plot(x)
-y=rect.hclust(x, k=4)
-h.cluster=cutree(x, k=4)
+#y=rect.hclust(x, k=4)
+h.cluster=cutree(x2, k=4)
 
 
 ## S3 method for class 'hclust'
@@ -613,74 +616,82 @@ Z.rot.plot=Z.dat
 Z.rot.plot$H.cluster=factor(Z.rot.plot$H.cluster)
 Z.rot.plot$K.cluster=factor(Z.rot.plot$K.cluster)
 
+find_hull <- function(df) df[chull(df$Trend1, df$Trend2), ]
+
+hull.s <- ddply(Z.rot.plot, .(K.cluster), find_hull)
+
 
 ##plot by habitat
 #pdf("LoadingsPlotv2.pdf", width=6, height=6)
-ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
- geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
- geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
- geom_point(aes(color=H.cluster)) +
- geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Hab.short), family="Helvetica") +
-  theme_sleek() +
-  scale_colour_brewer(type="qual", palette=3)+
+ggplot(Z.rot.plot, aes(Trend1, Trend2, color=K.cluster)) +
+ geom_vline(xintercept=c(0), colour="grey80", size=1 ) +
+ geom_hline(yintercept=c(0), colour="grey80", size=1) +
+ geom_point() +
+ geom_text_repel(aes(Trend1,Trend2, label=Hab.short), family="Helvetica") +
+ geom_polygon(data = hull.s, alpha = 0.2) +
+   theme_sleek()  +
+  scale_colour_brewer(type="qual", palette=2)+
   coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
 #dev.off()
 
-
 ##plot by shelf/slope -- cluster 3 is mostly slope
 #pdf("LoadingsPlotv2.pdf", width=6, height=6)
-ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
- geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
- geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
- geom_point(aes(color=H.cluster)) +
- geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=shelf.slope), family="Helvetica") +
-  theme_sleek() +
-  scale_colour_brewer(type="qual", palette=3)+
+ggplot(Z.rot.plot, aes(Trend1, Trend2,color=K.cluster)) +
+ geom_vline(xintercept=c(0), colour="grey80", size=1 ) +
+ geom_hline(yintercept=c(0), colour="grey80", size=1) +
+ geom_point() +
+ geom_text_repel(aes(Trend1,Trend2, label=shelf.slope), family="Helvetica") +
+ geom_polygon(data = hull.s, alpha = 0.2) +
+   theme_sleek() +
+  scale_colour_brewer(type="qual", palette=2)+
   coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
 #dev.off()
 
 #plot by spawn timing
-ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
- geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
- geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
- geom_point(aes(color=H.cluster)) +
- geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Spawn.short), family="Helvetica") +
+ggplot(Z.rot.plot, aes(Trend1, Trend2, color=K.cluster)) +
+ geom_vline(xintercept=c(0), colour="grey80", size=1 ) +
+ geom_hline(yintercept=c(0), colour="grey80", size=1) +
+ geom_point() +
+ geom_polygon(data = hull.s, alpha = 0.2) +
+  geom_text_repel(aes(Trend1,Trend2, label=Spawn.short), family="Helvetica") +
   theme_sleek() +
-  scale_colour_brewer(type="qual", palette=3)+
+  scale_colour_brewer(type="qual", palette=2)+
   coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
 
 #plot by larval duration
-ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
- geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
- geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
- geom_point(aes(color=H.cluster)) +
- geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Dur.short), family="Helvetica") +
+ggplot(Z.rot.plot, aes(Trend1, Trend2, color=K.cluster)) +
+ geom_vline(xintercept=c(0), colour="grey80", size=1 ) +
+ geom_hline(yintercept=c(0), colour="grey80", size=1) +
+ geom_point() +
+ geom_text_repel(aes(Trend1,Trend2, label=Dur.short), family="Helvetica") +
   theme_sleek() +
   scale_colour_brewer(type="qual", palette=3)+
   coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
 
 #plot by latitude
-ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
- geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
- geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
- geom_point(aes(color=H.cluster)) +
- geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=Lat), family="Helvetica") +
+ggplot(Z.rot.plot, aes(Trend1, Trend2), color=K.cluster) +
+ geom_vline(xintercept=c(0), colour="grey80", size=1 ) +
+ geom_hline(yintercept=c(0), colour="grey80", size=1) +
+ geom_point() +
+ geom_polygon(data = hull.s, alpha = 0.2) +
+  geom_text_repel(aes(Trend1,Trend2, label=Lat), family="Helvetica") +
   theme_sleek() +
-  scale_colour_brewer(type="qual", palette=3)+
+  scale_colour_brewer(type="qual", palette=2)+
   coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.4))
 
 
 
-
+pdf("Clusterplot.pdf", width=7.5, height=5)
 ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
- #geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
- #geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
- geom_point(aes(color=H.cluster)) +
+ geom_vline(xintercept=c(0), colour="grey80", size=1 ) +
+ geom_hline(yintercept=c(0), colour="grey80", size=1) +
+ geom_point(aes(color=K.cluster)) +
  geom_text_repel(aes(Trend1,Trend2, alpha=log(meanAbund), label=ShortName), family="Helvetica") +
+  #geom_polygon(data = hull.s, alpha = 0.2)+
   theme_sleek() +
   scale_colour_brewer(type="qual", palette=2)+
-  coord_cartesian(xlim=c(-1,1), ylim=c(-.6,.6))
-
+  coord_cartesian(xlim=c(-0.8,0.8), ylim=c(-.6,.4))
+dev.off()
 # ggplot(Z.rot.plot, aes(Trend1, Trend2)) +
 #  geom_vline(xintercept=c(-0.2,0.2), colour="grey80", size=2 ) +
 #  geom_hline(yintercept=c(-0.2,0.2), colour="grey80", size=2) +
