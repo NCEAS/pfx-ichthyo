@@ -2,7 +2,7 @@ d <- readRDS("correlation-matrix.rds")
 
 library(tidyverse)
 library(manipulate)
-library(psychometric)
+#library(psychometric)
 library(ggsidekick)
 predictors <- select(d, ENSO:V5)
 responses <- select(d, trend1:IchSW)
