@@ -15,7 +15,6 @@ seld.filter<- seld.mml %>%
     ungroup() %>%
     spread(Month, MSL) 
 
-matplot(seld.filter[,-1])
 names(seld.filter)=c('year','avg', 'jan.MSL', 'feb.MSL', 'mar.MSL','apr.MSL', 'may.MSL','jun.MSL')
 
 ##pull the sandpoint station tide gauge data
@@ -60,13 +59,17 @@ names(sand.anom.filter)=c('Year','avg.anom', 'jan.anom', 'feb.anom', 'mar.anom',
 #read in responses
 d <- readRDS("correlation-matrix.rds")
 #d=cbind(d,seld.filter[,2:8])
+d=cbind(d,seld.anom.filter[,2:8])
 #d=cbind(d,sand.anom.filter[,2:8])
-d=cbind(d,sand.filter[,2:8])
+#d=cbind(d,sand.filter[,2:8])
 
 #predictors <- select(d, c(ENSO:sst, avg, V2:V5))
+
+
+predictors <- select(d, c(ENSO:sst,avg.anom,V2:V5))
 responses <- select(d, trend1:IchSW)
 
-predictors<-select(d, avg:jun.MSL)
+#predictors<-select(d, avg:jun.MSL)
 
 #names(predictors)=c('avg', 'jan.MSL', 'feb.MSL', 'mar.MSL','apr.MSL', 'may.MSL','jun.MSL')
 
@@ -75,11 +78,3 @@ names(predictors)=c('ENSO','NPGO','NPI','PDO','Upwell','SST','MSL','POLL','PCOD'
 
 names(responses)=c('Trend 1','Trend 2', 'Sp Rich','Shannon')
 
-cor(cbind(d,seld.filter), use="complete.obs")
-#covariates
-reshape()
-for (i in 1:6) {
-  seld.month= seld.filter %>%
-    filter(Month==i)
-  cor()
-}

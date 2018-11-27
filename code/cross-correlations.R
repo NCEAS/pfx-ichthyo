@@ -62,23 +62,27 @@ cc <- function(x, y, k, trans = I, pyper = pyper, alpha = 0.9, method = method, 
   
   out <- out %>% mutate(sig = ifelse(u < 0, "low", ifelse(l > 0, "high", "none")))
   
-  ggplot(out, aes(i+k/2+1979, r)) + 
+  cbbbw<-c('#5e3c99','#e66101')
+  
+  fig5<-ggplot(out, aes(i+k/2+1979, r)) + 
     geom_line() +
     #geom_ribbon(aes(x=c(1984,1994),ymin =-1 , ymax =1 ), alpha = 0.2, inherit.aes=F) +
-    geom_ribbon(aes(ymin = l, ymax = u), alpha = 0.2) +
+    geom_ribbon(aes(ymin = l, ymax = u), alpha = 0.15) +
     facet_grid(x~y) +
     geom_hline(yintercept = 0, lty = 2, colour = "grey50") +
-    #geom_vline(xintercept=c(1994.5,2002.5), lty=2, colour="green")+
+    #geom_vline(xintercept=c(1984.5,1994.5, 2002.5), lty=2, colour="green")+
     geom_point(data = filter(out, sig != "none"), aes(color = sig)) +
+    scale_colour_manual(values=cbbbw) +
     #theme_light() + 
     guides(colour = FALSE) +
     labs(x="Year", y="Correlation Coefficient") +
     theme_sleek()
   #theme(panel.grid.major = element_blank(),
-     # panel.grid.minor = element_blank())
+      #panel.grid.minor = element_blank())
 #}, k = slider(4, 33, 11), method = picker("pearson", "spearman", "kendall"), pyper = picker(TRUE, FALSE))
 
-
+ggsave("fig5.pdf", fig5, width=190, height=200,units="mm")
+  
 predictors %>% 
   mutate(year = seq_len(nrow(predictors))+1980) %>%
   reshape2::melt(id = "year") %>%

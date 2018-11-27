@@ -5,9 +5,9 @@ library(INLA)
 library(dplyr)
 library(ggplot2)
 
-setwd('/Users/kristinmarshall/Dropbox/Ichthyo_IndexStandardization')
+setwd('/Users/kristin.marshall/downloads/')
 #Load in the data -- this is the larvae only data that Janet's cleaned up. 
-ichthyo = read.csv("./raw_data/mergedData_final_binned.csv")
+ichthyo = read.csv("mergedData_final_binned.csv")
 ichthyo = ichthyo[-which(is.na(ichthyo$Latitude+ichthyo$Longitude)==T),]
 
 # lump species
@@ -59,13 +59,13 @@ panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) 
 print(g)
 
 
-g = ggplot(data=df, aes(X, Y)) + coord_cartesian(ylim = c(52, 60), xlim=c(min(df$X),max(df$X))) + geom_point(aes(colour = factor(incl)), size = 0.3) +  
- scale_color_manual(values=c("grey70","dodgerblue")) + 
- geom_polygon(data = nepacLLhigh, aes(X, Y, group = PID), fill=grey(0.3)) + xlab("Longitude") + ylab("Latitude") + theme_minimal() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+g = ggplot(data=df, aes(X, Y)) + coord_cartesian(ylim = c(52, 60), xlim=c(min(df$X),max(df$X))) + geom_point(aes(colour = factor(incl)), size = 0.2) +  
+ scale_color_manual(values=c("grey80","#5e3c99")) + 
+ geom_polygon(data = nepacLLhigh, aes(X, Y, group = PID), fill=grey(0.4)) + xlab("Longitude") + ylab("Latitude") + theme_minimal() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
 panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) + theme(legend.position="none") + xlab("Longitude") + ylab("Latitude")
 print(g)
 
-pdf("map.pdf")
+pdf("map.pdf", width=90/25.4, height=90/25.4)
 print(g)
 dev.off()
 
